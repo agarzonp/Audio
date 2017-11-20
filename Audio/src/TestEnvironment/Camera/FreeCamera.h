@@ -12,64 +12,62 @@ public:
 
 	void Update(float deltaTime) override
 	{
-		static const float speed = 10.0f * deltaTime;
-		static const float angle = 0.67f * deltaTime;
+		static const float speed = 0.0001f;
+		static const float angle = 0.0067f;
 
-		if (!Input::isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-			if (Input::isKeyPressed(GLFW_KEY_W))
-			{
-				Move(forward * speed);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_W))
+    {
+      Move(forward * speed);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_S))
-			{
-				Move(forward * -speed);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_S))
+    {
+      Move(forward * -speed);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_A))
-			{
-				Move(right * -speed);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_A))
+    {
+      Move(right * -speed);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_D))
-			{
-				Move(right * speed);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_D))
+    {
+      Move(right * speed);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_Q))
-			{
-				Move(up * speed);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_Q))
+    {
+      Move(up * speed);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_E))
-			{
-				Move(up * -speed);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_E))
+    {
+      Move(up * -speed);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_LEFT))
-			{
-				//Rotate(glm::vec3(0.0f, angle, 0.0f));
-				RotateAroundAxis(up, angle);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_LEFT))
+    {
+      //Rotate(glm::vec3(0.0f, angle, 0.0f));
+      RotateAroundAxis(up, angle);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_RIGHT))
-			{
-				//Rotate(glm::vec3(0.0f, -angle, 0.0f));
-				RotateAroundAxis(up, -angle);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_RIGHT))
+    {
+      //Rotate(glm::vec3(0.0f, -angle, 0.0f));
+      RotateAroundAxis(up, -angle);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_UP))
-			{
-				//Rotate(glm::vec3(angle, 0.0f, 0.0f));
-				RotateAroundAxis(right, angle);
-			}
+    if (Input::isKeyPressed(GLFW_KEY_UP))
+    {
+      //Rotate(glm::vec3(angle, 0.0f, 0.0f));
+      RotateAroundAxis(right, angle);
+    }
 
-			if (Input::isKeyPressed(GLFW_KEY_DOWN))
-			{
-				//Rotate(glm::vec3(-angle, 0.0f, 0.0f));
-				RotateAroundAxis(right, -angle);
-			}
-		}
+    if (Input::isKeyPressed(GLFW_KEY_DOWN))
+    {
+      //Rotate(glm::vec3(-angle, 0.0f, 0.0f));
+      RotateAroundAxis(right, -angle);
+    }
 	}
 
 private:

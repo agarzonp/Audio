@@ -5,6 +5,8 @@
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
+#include <chrono>
+
 #include "TestEnvironment/TestEnvironment.h"
 
 int main()
@@ -44,18 +46,36 @@ int main()
   // Init TestEnvironment
   TestEnvironment testEnvironment;
 
+  // init input
+  Input::SetWindow(window);
+  Input::SetListener(static_cast<InputListener*>(&testEnvironment));
+  glfwSetKeyCallback(window, Input::OnKeyCallback);
+  glfwSetMouseButtonCallback(window, Input::OnMouseButtonCallback);
+  glfwSetScrollCallback(window, Input::OnMouseScrollCallback);
+  glfwSetCursorPosCallback(window, Input::OnMouseMoveCallback);
+
+  auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds::zero());
+ 
+  auto currentTime = std::chrono::steady_clock::now();
+  auto previousTime = std::chrono::steady_clock::now();
+
 	// main loop
 	while (!glfwWindowShouldClose(window))
 	{
+    currentTime = std::chrono::steady_clock::now();
+
 		glfwPollEvents();
 
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - previousTime);
+    previousTime = currentTime;
 
-    testEnvironment.Update();
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    testEnvironment.Update((float)deltaTime.count() / 1000000);
     testEnvironment.Render();
 
-		glfwSwapBuffers(window);
+    glfwSwapBuffers(window);
 	}
 
 	glfwTerminate();

@@ -36,8 +36,9 @@ public:
 	
 	void OnMouseMove(double x, double y) { }
 
-	void Update() 
+	void Update(float deltaTime) 
 	{
+    camera.Update(deltaTime);
 	}
 
 	void Render() 
