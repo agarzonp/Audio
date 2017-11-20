@@ -9,10 +9,50 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{c5eb84bd-d190-4471-8afb-5dad6ca3330e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{d79bb6b0-168e-4dd4-b532-3acf54f1b54d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TestEnvironment">
+      <UniqueIdentifier>{0ecd1947-af61-4764-b6e4-c239a480bb4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TestEnvironment\Camera">
+      <UniqueIdentifier>{b27f35f6-6dc0-4ad5-91ab-990fb3adb8b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders">
+      <UniqueIdentifier>{cc3f4573-53e4-4297-b98d-c21370378ffa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Input\Input.h">
+      <Filter>Source Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shaders\Shader.h">
+      <Filter>Source Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TestEnvironment\Camera\Camera.h">
+      <Filter>Source Files\TestEnvironment\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TestEnvironment\Camera\FreeCamera.h">
+      <Filter>Source Files\TestEnvironment\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TestEnvironment\TestEnvironment.h">
+      <Filter>Source Files\TestEnvironment</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\Shaders\basic.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="assets\Shaders\basic.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

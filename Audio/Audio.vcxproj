@@ -21,6 +21,17 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Input\Input.h" />
+    <ClInclude Include="src\Shaders\Shader.h" />
+    <ClInclude Include="src\TestEnvironment\Camera\Camera.h" />
+    <ClInclude Include="src\TestEnvironment\Camera\FreeCamera.h" />
+    <ClInclude Include="src\TestEnvironment\TestEnvironment.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\Shaders\basic.frag" />
+    <None Include="assets\Shaders\basic.vert" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2F24D800-3A63-40CA-896D-842CDEAC297C}</ProjectGuid>
     <RootNamespace>Audio</RootNamespace>

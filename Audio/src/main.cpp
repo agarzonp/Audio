@@ -5,6 +5,8 @@
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
+#include "TestEnvironment/TestEnvironment.h"
+
 int main()
 {
 	// init glfw
@@ -39,16 +41,19 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 
+  // Init TestEnvironment
+  TestEnvironment testEnvironment;
+
 	// main loop
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
 
-
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // TO-DO: Update and render
+    testEnvironment.Update();
+    testEnvironment.Render();
 
 		glfwSwapBuffers(window);
 	}
