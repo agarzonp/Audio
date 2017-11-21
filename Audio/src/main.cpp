@@ -5,7 +5,11 @@
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
+#include "FMOD/fmod.hpp"
+#include "FMOD/fmod_errors.h"
+
 #include <chrono>
+#include <cassert>
 
 #include "TestEnvironment/TestEnvironment.h"
 
@@ -54,6 +58,23 @@ int main()
   glfwSetScrollCallback(window, Input::OnMouseScrollCallback);
   glfwSetCursorPosCallback(window, Input::OnMouseMoveCallback);
 
+  // init audio
+  FMOD::System* FMODSystem = nullptr;
+  FMOD::System_Create(&FMODSystem);
+  if (FMODSystem)
+  {
+    int maxChannels = 50;
+    FMOD_INITFLAGS flags = FMOD_INIT_NORMAL;
+    void* extraDriverData = nullptr;
+    FMODSystem->init(maxChannels, flags, extraDriverData);
+  }
+  else
+  {
+    FMOD_RESULT errorResult = FMOD::System_Create(&FMODSystem);
+    assert(errorResult != FMOD_OK);
+    std::cerr << "Failed to create FMOD system. Error: " << FMOD_ErrorString(errorResult) << std::endl;
+  }
+
   auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds::zero());
  
   auto currentTime = std::chrono::steady_clock::now();
@@ -76,7 +97,18 @@ int main()
     testEnvironment.Render();
 
     glfwSwapBuffers(window);
+
+    if (FMODSystem)
+    {
+      FMODSystem->update();
+    }
 	}
+
+  // release audio
+  if (FMODSystem)
+  {
+    FMODSystem->release();
+  }
 
 	glfwTerminate();
 
