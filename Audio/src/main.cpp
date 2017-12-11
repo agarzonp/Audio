@@ -71,9 +71,14 @@ int main()
   else
   {
     FMOD_RESULT errorResult = FMOD::System_Create(&FMODSystem);
-    assert(errorResult != FMOD_OK);
     std::cerr << "Failed to create FMOD system. Error: " << FMOD_ErrorString(errorResult) << std::endl;
   }
+
+  // load audio
+  FMOD::Sound* sound = nullptr;
+  FMOD_RESULT errorResult = FMODSystem->createSound("sound.wav", FMOD_DEFAULT, nullptr, &sound);
+  if(errorResult != FMOD_OK)
+    std::cerr << "Failed to load sound. Error: " << FMOD_ErrorString(errorResult) << std::endl;
 
   auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds::zero());
  
@@ -93,6 +98,19 @@ int main()
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // play sound
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+      if (FMODSystem)
+      {
+        FMOD::Channel* channel = nullptr;
+        bool paused = false;
+        errorResult = FMODSystem->playSound(sound, nullptr, paused, &channel);
+        if (errorResult != FMOD_OK)
+          std::cerr << "Failed to play sound. Error: " << FMOD_ErrorString(errorResult) << std::endl;
+      }
+    }
+
     testEnvironment.Update((float)deltaTime.count() / 1000000);
     testEnvironment.Render();
 
@@ -103,6 +121,12 @@ int main()
       FMODSystem->update();
     }
 	}
+
+  // unload audio
+  if (sound)
+  {
+    sound->release();
+  }
 
   // release audio
   if (FMODSystem)
