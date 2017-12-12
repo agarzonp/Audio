@@ -5,9 +5,6 @@
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
-#include "FMOD/fmod.hpp"
-#include "FMOD/fmod_errors.h"
-
 #include <chrono>
 #include <cassert>
 
@@ -58,28 +55,6 @@ int main()
   glfwSetScrollCallback(window, Input::OnMouseScrollCallback);
   glfwSetCursorPosCallback(window, Input::OnMouseMoveCallback);
 
-  // init audio
-  FMOD::System* FMODSystem = nullptr;
-  FMOD::System_Create(&FMODSystem);
-  if (FMODSystem)
-  {
-    int maxChannels = 50;
-    FMOD_INITFLAGS flags = FMOD_INIT_NORMAL;
-    void* extraDriverData = nullptr;
-    FMODSystem->init(maxChannels, flags, extraDriverData);
-  }
-  else
-  {
-    FMOD_RESULT errorResult = FMOD::System_Create(&FMODSystem);
-    std::cerr << "Failed to create FMOD system. Error: " << FMOD_ErrorString(errorResult) << std::endl;
-  }
-
-  // load audio
-  FMOD::Sound* sound = nullptr;
-  FMOD_RESULT errorResult = FMODSystem->createSound("sound.wav", FMOD_DEFAULT, nullptr, &sound);
-  if(errorResult != FMOD_OK)
-    std::cerr << "Failed to load sound. Error: " << FMOD_ErrorString(errorResult) << std::endl;
-
   auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds::zero());
  
   auto currentTime = std::chrono::steady_clock::now();
@@ -98,41 +73,11 @@ int main()
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // play sound
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    {
-      if (FMODSystem)
-      {
-        FMOD::Channel* channel = nullptr;
-        bool paused = false;
-        errorResult = FMODSystem->playSound(sound, nullptr, paused, &channel);
-        if (errorResult != FMOD_OK)
-          std::cerr << "Failed to play sound. Error: " << FMOD_ErrorString(errorResult) << std::endl;
-      }
-    }
-
     testEnvironment.Update((float)deltaTime.count() / 1000000);
     testEnvironment.Render();
 
     glfwSwapBuffers(window);
-
-    if (FMODSystem)
-    {
-      FMODSystem->update();
-    }
 	}
-
-  // unload audio
-  if (sound)
-  {
-    sound->release();
-  }
-
-  // release audio
-  if (FMODSystem)
-  {
-    FMODSystem->release();
-  }
 
 	glfwTerminate();
 

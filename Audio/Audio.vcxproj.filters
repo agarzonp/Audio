@@ -24,6 +24,18 @@
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{cc3f4573-53e4-4297-b98d-c21370378ffa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Audio">
+      <UniqueIdentifier>{07c5d267-89f7-4ead-baa1-52b4e60f3cc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Audio\Systems">
+      <UniqueIdentifier>{fe04245d-a6c2-4024-8f35-5b8962110fed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Audio\Systems\System_FMOD">
+      <UniqueIdentifier>{44df89e7-fcba-43cc-a0ee-a88df70c6ba8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Audio\Systems\System_Common">
+      <UniqueIdentifier>{18baf570-63b1-452a-942f-f09447b6892c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -45,6 +57,18 @@
     </ClInclude>
     <ClInclude Include="src\TestEnvironment\TestEnvironment.h">
       <Filter>Source Files\TestEnvironment</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\AudioManager.h">
+      <Filter>Source Files\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\System\AudioSystem.h">
+      <Filter>Source Files\Audio\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\System\System_Common\AudioSystemCommon.h">
+      <Filter>Source Files\Audio\Systems\System_Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\System\System_FMOD\AudioSystemFMOD.h">
+      <Filter>Source Files\Audio\Systems\System_FMOD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

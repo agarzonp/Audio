@@ -1,18 +1,17 @@
 #ifndef TEST_ENVIRONMENT_H
 #define TEST_ENVIRONMENT_H
 
-#include "../Input/Input.h"
-#include "../Shaders/Shader.h"
+#include <cassert>
+#include <memory>
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/gtx/quaternion.hpp"
 
-
+#include "../Audio/AudioManager.h"
+#include "../Input/Input.h"
+#include "../Shaders/Shader.h"
 #include "Camera/FreeCamera.h"
-
-#include <cassert>
-#include <memory>
 
 class TestEnvironment : public InputListener
 {
@@ -28,7 +27,24 @@ public:
 		Terminate();
 	}
 
-	void OnKeyPressed(int key) override { }
+	void OnKeyPressed(int key) override 
+	{
+		switch (key)
+		{
+		case GLFW_KEY_1:
+			audioManager.LoadSound("sound.wav");
+			break;
+		case GLFW_KEY_2:
+			audioManager.LoadSound("sound.wav");
+			break;
+		case GLFW_KEY_3:
+			audioManager.PlaySound("sound.wav");
+			break;
+		default:
+			break;
+		}
+	}
+
 	void OnKeyReleased(int key) override { }
 	void OnMouseButtonPressed(int button, double x, double y) override { }
 	void OnMouseButtonReleased(int button, double x, double y) override { }
@@ -39,6 +55,8 @@ public:
 	void Update(float deltaTime) 
 	{
     camera.Update(deltaTime);
+
+		audioManager.Update();
 	}
 
 	void Render() 
@@ -67,6 +85,9 @@ protected:
 
     // init camera
     camera.Init(glm::vec3(0.0f, 1.0f, -15.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 1024.0f / 768.0f, 0.1f, 1000000.0f);
+
+		// init audio
+		audioManager.Initialise();
 	}
 		
 	void InitVBO()
@@ -225,6 +246,8 @@ protected:
 		glDeleteVertexArrays(1, &vertexArrayObject);
 		glDeleteBuffers(1, &vertexBufferObject);
 		glDeleteBuffers(1, &indexBufferObject);
+
+		audioManager.Deinitialise();
 	}
 
 private:
@@ -280,6 +303,9 @@ private:
 
   // Camera
   FreeCamera camera;
+
+	// Audio Manager
+	AudioManager audioManager;
 };
 
 #endif
