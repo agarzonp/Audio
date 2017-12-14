@@ -89,6 +89,7 @@ public:
 
 		return false;
 	}
+
 	bool PlaySound(const std::string& soundName)
 	{
 		if (!audioSystem)
@@ -121,6 +122,35 @@ public:
 		}
 
 		return audioSystem->StopSound(*soundMapIt->second);
+	}
+
+	bool PauseSound(const std::string& soundName)
+	{
+		return PauseSound(soundName, true);
+	}
+
+	bool ResumeSound(const std::string& soundName)
+	{
+		return PauseSound(soundName, false);
+	}
+	
+protected:
+
+	bool PauseSound(const std::string& soundName, bool pause)
+	{
+		if (!audioSystem)
+		{
+			return false;
+		}
+
+		auto soundMapIt = soundMap.find(soundName);
+		if (soundMapIt == soundMap.end())
+		{
+			printf("Failed to %s sound %s. Error: Sound not loaded.", pause ? "pause":"resume", soundName.c_str());
+			return false;
+		}
+
+		return audioSystem->PauseSound(*soundMapIt->second, pause);
 	}
 
 private:

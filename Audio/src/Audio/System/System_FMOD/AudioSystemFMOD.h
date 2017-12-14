@@ -129,6 +129,26 @@ public:
 
 		return (result == FMOD_OK);
 	}
+
+	bool PauseSound(const AudioSystemSound& audioSystemSound, bool pause)
+	{
+		if (!system)
+		{
+			return false;
+		}
+
+		FMOD::Channel* channel = static_cast<FMOD::Channel*> (audioSystemSound.GetSoundControl());
+		if (!channel)
+		{
+			return false;
+		}
+
+		FMOD_RESULT result = channel->setPaused(pause);
+		if (result != FMOD_OK)
+			printf("Failed to %s sound. Error: %s \n", pause ? "pause" : "resume",  FMOD_ErrorString(result));
+
+		return (result == FMOD_OK);
+	}
 };
 
 #endif // !AUDIO_SYSTEM_FMOD

@@ -80,6 +80,7 @@ public:
 
 	virtual bool PlaySound(AudioSystemSound& audioSystemSound) = 0;
 	virtual bool StopSound(const AudioSystemSound& audioSystemSound) = 0;
+	virtual bool PauseSound(const AudioSystemSound& audioSystemSound, bool pause) = 0;
 
 protected:
 
