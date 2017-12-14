@@ -39,10 +39,21 @@ public:
 			break;
 		case GLFW_KEY_3:
 			audioManager.StopSound("sound.wav");
+			break;
 		case GLFW_KEY_4:
 			audioManager.PauseSound("sound.wav");
+			break;
 		case GLFW_KEY_5:
 			audioManager.ResumeSound("sound.wav");
+			break;
+		case GLFW_KEY_KP_ADD:
+		case GLFW_KEY_KP_SUBTRACT:
+		{
+			static float volume = 1.0f;
+			(key == GLFW_KEY_KP_ADD) ? volume++ : volume--;
+			audioManager.SetSoundVolume("sound.wav", volume);
+			break;
+		}
 			break;
 		default:
 			break;

@@ -82,6 +82,8 @@ public:
 	virtual bool StopSound(const AudioSystemSound& audioSystemSound) = 0;
 	virtual bool PauseSound(const AudioSystemSound& audioSystemSound, bool pause) = 0;
 
+	virtual bool SetSoundVolume(const AudioSystemSound& audioSystemSound, float volume) = 0;
+
 protected:
 
   

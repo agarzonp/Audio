@@ -133,6 +133,26 @@ public:
 	{
 		return PauseSound(soundName, false);
 	}
+
+	bool SetSoundVolume(const std::string& soundName, float volume)
+	{
+		if (!audioSystem)
+		{
+			return false;
+		}
+
+		auto soundMapIt = soundMap.find(soundName);
+		if (soundMapIt == soundMap.end())
+		{
+			printf("Failed to set volume for sound %s. Error: Sound not loaded.", soundName.c_str());
+			return false;
+		}
+
+		if (volume > 1.0f) volume = 1.0f;
+		if (volume < 0.0f) volume = 0.0f;
+
+		return audioSystem->SetSoundVolume(*soundMapIt->second, volume);
+	}
 	
 protected:
 
