@@ -106,6 +106,23 @@ public:
 		return audioSystem->PlaySound(*soundMapIt->second);
 	}
 
+	bool StopSound(const std::string& soundName)
+	{
+		if (!audioSystem)
+		{
+			return false;
+		}
+
+		auto soundMapIt = soundMap.find(soundName);
+		if (soundMapIt == soundMap.end())
+		{
+			printf("Failed to stop sound %s. Error: Sound not loaded.", soundName.c_str());
+			return false;
+		}
+
+		return audioSystem->StopSound(*soundMapIt->second);
+	}
+
 private:
 
 	static std::unique_ptr<IAudioSystem> audioSystem;

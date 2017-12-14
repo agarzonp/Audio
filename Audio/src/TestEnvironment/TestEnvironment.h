@@ -35,10 +35,10 @@ public:
 			audioManager.LoadSound("sound.wav");
 			break;
 		case GLFW_KEY_2:
-			audioManager.LoadSound("sound.wav");
+			audioManager.PlaySound("sound.wav");
 			break;
 		case GLFW_KEY_3:
-			audioManager.PlaySound("sound.wav");
+			audioManager.StopSound("sound.wav");
 			break;
 		default:
 			break;

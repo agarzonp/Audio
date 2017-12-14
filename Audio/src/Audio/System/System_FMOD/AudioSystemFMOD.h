@@ -82,7 +82,7 @@ public:
 		return false;
 	}
 
-	bool PlaySound(const AudioSystemSound& audioSystemSound) override
+	bool PlaySound(AudioSystemSound& audioSystemSound) override
 	{
 		if (!system)
 		{
@@ -98,9 +98,35 @@ public:
     FMOD::Channel* channel = nullptr;
     bool paused = false;
     FMOD_RESULT result = system->playSound(sound, nullptr, paused, &channel);
-    if (result != FMOD_OK)
-      printf("Failed to play sound. Error: %s \n", FMOD_ErrorString(result));
-		
+    if (result == FMOD_OK)
+		{
+			audioSystemSound.SetSoundControl(channel);
+		}
+		else
+		{
+			printf("Failed to play sound. Error: %s \n", FMOD_ErrorString(result));
+		}
+      
+		return (result == FMOD_OK);
+	}
+
+	bool StopSound(const AudioSystemSound& audioSystemSound) override
+	{
+		if (!system)
+		{
+			return false;
+		}
+
+		FMOD::Channel* channel = static_cast<FMOD::Channel*> (audioSystemSound.GetSoundControl());
+		if (!channel)
+		{
+			return false;
+		}
+
+		FMOD_RESULT result = channel->stop();
+		if (result != FMOD_OK)
+			printf("Failed to stop sound. Error: %s \n", FMOD_ErrorString(result));
+
 		return (result == FMOD_OK);
 	}
 };

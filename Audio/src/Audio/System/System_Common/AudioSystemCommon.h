@@ -13,13 +13,17 @@ public:
   
   void* Get() const { return sound; }
 
+	void SetSoundControl(void* soundControl_) { soundControl = soundControl_; }
+	void* GetSoundControl() const { return soundControl; }
+
 protected:
   
-  void Release() { sound = nullptr; }
+	void Release() { sound = nullptr; soundControl = nullptr; }
 
 private:
 
   void* sound { nullptr };
+	void* soundControl{ nullptr };
 
   // Only the AudioSystemSoundPool is able to release current sound
   friend class AudioSystemSoundPool;
@@ -74,7 +78,8 @@ public:
 	virtual bool LoadSound(const std::string& soundName, AudioSystemSound& outSound) = 0;
 	virtual bool UnloadSound(const AudioSystemSound& audioSystemSound) = 0;
 
-	virtual bool PlaySound(const AudioSystemSound& audioSystemSound) = 0;
+	virtual bool PlaySound(AudioSystemSound& audioSystemSound) = 0;
+	virtual bool StopSound(const AudioSystemSound& audioSystemSound) = 0;
 
 protected:
 
