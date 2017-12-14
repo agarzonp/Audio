@@ -9,6 +9,8 @@
 
 class AudioManager
 {
+	static const int SOUND_POOL_SIZE = 100;
+
 public:
 
 	void Initialise()
@@ -22,6 +24,8 @@ public:
 
 		audioSystem = AudioSystem::Create();
 		audioSystem->Initialise();
+
+		soundPool.SetSize(SOUND_POOL_SIZE);
 	}
 
 	void Deinitialise()

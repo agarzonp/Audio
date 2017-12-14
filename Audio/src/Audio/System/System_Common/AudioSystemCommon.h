@@ -30,6 +30,11 @@ class AudioSystemSoundPool
 {
 public:
 
+	void SetSize(size_t size)
+	{
+		sounds.resize(size);
+	}
+
   AudioSystemSound* GetFree()
   {
     AudioSystemSound* sound = nullptr;
