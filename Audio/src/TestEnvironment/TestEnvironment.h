@@ -50,7 +50,7 @@ public:
 		case GLFW_KEY_KP_SUBTRACT:
 		{
 			static float volume = 1.0f;
-			(key == GLFW_KEY_KP_ADD) ? volume++ : volume--;
+			volume += (key == GLFW_KEY_KP_ADD) ? 0.05f: -0.05f;
 			audioManager.SetSoundVolume("sound.wav", volume);
 			break;
 		}

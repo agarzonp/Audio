@@ -80,7 +80,8 @@ public:
       return false;
     }
 
-    if (audioSystem->LoadSound(soundName, *sound))
+		static const char* path = "assets/Audio/";
+    if (audioSystem->LoadSound(std::string(path) + soundName, *sound))
     {
       // insert a new pair in the map
       soundMap.insert(std::make_pair(soundName, sound));

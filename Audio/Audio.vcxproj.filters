@@ -36,6 +36,9 @@
     <Filter Include="Source Files\Audio\Systems\System_Common">
       <UniqueIdentifier>{18baf570-63b1-452a-942f-f09447b6892c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Audio">
+      <UniqueIdentifier>{41751f75-972b-45b8-9a86-f9b14caa2a67}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -78,5 +81,10 @@
     <None Include="assets\Shaders\basic.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="assets\Audio\sound.wav">
+      <Filter>Resource Files\Audio</Filter>
+    </Media>
   </ItemGroup>
 </Project>
