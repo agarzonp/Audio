@@ -52,6 +52,7 @@ public:
     std::ifstream iFile(soundName.c_str(), std::ios_base::binary);
     if (!iFile.is_open())
     {
+      printf("Error: Unable to load file %s\n", soundName.c_str());
       return false;
     }
 
@@ -67,6 +68,12 @@ public:
     value = 0;
     iFile.read(reinterpret_cast<char*>(&value), WavFileFormat.DESCRIPTOR.format);
     printf("WavFileFormat.DESCRIPTOR.format: %d\n", value);
+
+    if (!iFile.good())
+    {
+      printf("Error: Chunk WavFileFormat.DESCRIPTOR not read properly.\n");
+      return false;
+    }
 
     value = 0;
     iFile.read(reinterpret_cast<char*>(&value), WavFileFormat.FORMAT.subchunk1ID);
@@ -101,6 +108,12 @@ public:
     printf("WavFileFormat.FORMAT.bitsPerSample: %d\n", value);
     size_t bitsPerSample = value;
 
+    if (!iFile.good())
+    {
+      printf("Error: Chunk WavFileFormat.FORMAT not read properly.\n");
+      return false;
+    }
+
     value = 0;
     iFile.read(reinterpret_cast<char*>(&value), WavFileFormat.DATA.subchunk2ID);
     printf("WavFileFormat.DATA.subchunk2ID: %d\n", value);
@@ -108,8 +121,14 @@ public:
     value = 0;
     iFile.read(reinterpret_cast<char*>(&value), WavFileFormat.DATA.subchunk2Size);
     printf("WavFileFormat.DATA.subchunk2Size: %d\n", value);
+
+    if (!iFile.good())
+    {
+      printf("Error: Chunk WavFileFormat.DATA not read properly.\n");
+      return false;
+    }
+
     size_t soundDataSize = value;
-    
     size_t bitsPerByte = 8;
 
     size_t sampleSize = bitsPerSample / bitsPerByte;
@@ -118,11 +137,20 @@ public:
     size_t numSamples = (soundDataSize * bitsPerByte) / bitsPerSample;
     printf("numSamples : %d\n", numSamples);
 
+    // start reading all the samples
     for (size_t i = 0; i < numSamples; i++)
     {
       value = 0;
       iFile.read(reinterpret_cast<char*>(&value), sampleSize);
       printf("Sample %d: %d\n", i, value);
+    }
+
+    std::streampos streamPos = iFile.tellg();
+    iFile.seekg(0, iFile.end);
+    if (streamPos != iFile.tellg())
+    {
+      printf("Error: Samples in chunk WavFileFormat.DATA not read properly.\n");
+      return false;
     }
 
     iFile.close();
