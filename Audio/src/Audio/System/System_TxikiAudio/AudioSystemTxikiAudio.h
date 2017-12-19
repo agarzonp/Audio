@@ -37,8 +37,8 @@ public:
 
 	bool UnloadSound(const AudioSystemSound& audioSystemSound) override
 	{
-		// TO-DO
-		return false;
+    TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
+    return txikiAudio.UnloadSound(sound);
 	}
 
 	bool PlaySound(AudioSystemSound& audioSystemSound) override

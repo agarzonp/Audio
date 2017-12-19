@@ -22,7 +22,17 @@ struct TxikiAudioSound
   unsigned int numSamples{ 0 };
 
   std::unique_ptr< short[] > samples;
+
+  void Release()
+  {
+    sampleRate = 44100;
+    numChannels = 2;
+    numSamples = 0;
+
+    samples.reset();
+  }
 };
+
 
 class TxikiAudio 
 {
@@ -215,6 +225,17 @@ public:
 
 		return true;
 	}
+  
+  bool UnloadSound(TxikiAudioSound* outSound)
+  {
+    if (!outSound)
+    {
+      return false;
+    }
+
+    outSound->Release();
+    return true;
+  }
 
 };
 
