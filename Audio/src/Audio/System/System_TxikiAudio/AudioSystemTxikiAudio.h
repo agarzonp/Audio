@@ -23,11 +23,15 @@ public:
 
   bool LoadSound(const std::string& soundName, AudioSystemSound& outSound) override
 	{
-		bool loaded = txikiAudio.LoadSound(soundName);
+    TxikiAudioSound* sound = nullptr;
+		bool loaded = txikiAudio.LoadSound(soundName, sound);
 		if (!loaded)
 		{
 			printf("Failed to load sound %s \n", soundName.c_str());
 		}
+
+    outSound = AudioSystemSound(sound);
+
 		return loaded;
 	}
 
