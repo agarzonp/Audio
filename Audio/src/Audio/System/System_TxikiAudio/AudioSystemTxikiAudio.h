@@ -46,14 +46,14 @@ public:
 
 	bool PlaySound(AudioSystemSound& audioSystemSound) override
 	{
-		// TO-DO
-		return false;
+    TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
+    return txikiAudio.PlaySound(sound);
 	}
 
 	bool StopSound(const AudioSystemSound& audioSystemSound) override
 	{
-		// TO-DO
-		return false;
+    TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
+    return txikiAudio.StopSound(sound);
 	}
 
 	bool PauseSound(const AudioSystemSound& audioSystemSound, bool pause) override
