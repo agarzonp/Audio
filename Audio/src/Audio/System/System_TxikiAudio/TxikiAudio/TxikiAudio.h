@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <memory>
+#include "portaudio/portaudio.h"
 
 enum class TxikiAudioFileFormat
 {
@@ -78,10 +79,51 @@ class TxikiAudio
 
   TxikiAudioSound sound;
 
+  bool initialised{ false };
+
 public:
+
+  bool Init()
+  {
+    assert(!initialised);
+    if (initialised)
+    {
+      return false;
+    }
+
+    // initialise portaudio
+    auto result = Pa_Initialize();
+    if (result != paNoError)
+    {
+      printf("Unable to initialise TxikiAudio. PortAudio error: %s\n", Pa_GetErrorText(result));
+      return false;
+    }
+
+    initialised = true;
+    return true;
+  }
+
+  bool Terminate()
+  {
+    // terminate portaudio
+    auto result = Pa_Terminate();
+    if (result != paNoError)
+    {
+      printf("Unable to terminate TxikiAudio. PortAudio error: %s\n", Pa_GetErrorText(result));
+      return false;
+    }
+
+    initialised = false;
+    return true;
+  }
 
   bool LoadSound(const std::string& soundName, TxikiAudioSound*& outSound)
 	{
+    if (!initialised)
+    {
+      return false;
+    }
+
     std::ifstream iFile(soundName.c_str(), std::ios_base::binary);
     if (!iFile.is_open())
     {

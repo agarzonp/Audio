@@ -15,7 +15,7 @@
 *.so
 *.dylib
 *.dll
-!Audio/common/lib/
+!Audio/common/lib/*.dll
 
 # Fortran module files
 *.mod
@@ -26,6 +26,7 @@
 *.la
 *.a
 *.lib
+!Audio/common/lib/*.dll
 
 # Executables
 *.exe
@@ -42,3 +43,4 @@
 # Others
 Audio/Debug
 Audio/PredictedInputCache_Debug_x86.dat
+*.log

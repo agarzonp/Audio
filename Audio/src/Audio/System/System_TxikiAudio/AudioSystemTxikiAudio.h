@@ -11,10 +11,13 @@ public:
 
 	void Initialise() override 
 	{
-		// TO-DO
+    txikiAudio.Init();
 	}
 
-	void Deinitialise() override {  /* nothing to do here */ }
+	void Deinitialise() override 
+  {  
+    txikiAudio.Terminate();
+  }
 
 	void Update() override 
 	{
