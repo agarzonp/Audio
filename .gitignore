@@ -27,6 +27,7 @@
 *.a
 *.lib
 !Audio/common/lib/*.dll
+!Audio/common/lib/*.lib
 
 # Executables
 *.exe
