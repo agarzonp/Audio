@@ -27,14 +27,77 @@ struct TxikiAudioSound
 
 	size_t sampleIndex { 0 };
 
+	PaStream* stream{ nullptr }; // handle to PortAudio stream
+
   void Release()
   {
+		Stop();
+
     sampleRate = 44100;
     numChannels = 2;
     numSamples = 0;
 
     samples.reset();
   }
+
+	bool Play(PaStreamCallback* callback)
+	{
+		if (stream)
+		{
+			// sound already playing
+			return true;
+		}
+
+		int numInputChannels = 0;
+		PaSampleFormat sampleFormat = paInt16; // for the moment we only allow TxikiAudioSoundFormat::PCM16
+		auto bufferLength = paFramesPerBufferUnspecified; // PortAudio will pick the best possible buffer size
+		
+		// Open default stream to play the audio
+		PaError result = Pa_OpenDefaultStream(&stream, numInputChannels, numChannels, sampleFormat, sampleRate, bufferLength, callback, this);
+		if (result != paNoError)
+		{
+			printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
+			return false;
+		}
+
+		// Start audio stream
+		result = Pa_StartStream(stream);
+		if (result != paNoError)
+		{
+			printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Stop()
+	{
+		if (stream)
+		{
+			// abort current stream
+			PaError result = Pa_AbortStream(stream);
+			if (result != paNoError)
+			{
+				printf("TxikiAudio unable to StopSound. PortAudio error: %s\n", Pa_GetErrorText(result));
+				return false;
+			}
+
+			// close the stream
+			result = Pa_CloseStream(stream);
+			if (result != paNoError)
+			{
+				printf("TxikiAudio unable to StopSound. PortAudio error: %s\n", Pa_GetErrorText(result));
+				return false;
+			}
+		}
+		
+		// reset
+		stream = nullptr;
+		sampleIndex = 0;
+
+		return true;
+	}
 };
 
 
@@ -81,7 +144,6 @@ class TxikiAudio
   } WavFileFormat;
 
   TxikiAudioSound sound;
-  PaStream* stream { nullptr };
 
   bool initialised{ false };
 
@@ -109,11 +171,7 @@ public:
 
   bool Terminate()
   {
-    // close the stream and release the sound
-    if (stream)
-    {
-      Pa_CloseStream(stream);
-    }
+    // release the sound
     sound.Release();
 
     // terminate portaudio
@@ -292,54 +350,12 @@ public:
 
   bool PlaySound(TxikiAudioSound* sound)
   {
-    int numInputChannels = 0;
-    int numOutputChannels = sound->numChannels;
-    PaSampleFormat sampleFormat = paInt16; // for the moment we only allow TxikiAudioSoundFormat::PCM16
-    double sampleRate = sound->sampleRate;
-    unsigned long bufferLength = paFramesPerBufferUnspecified; // PortAudio will pick the best possible buffer size
-    PaStreamCallback* callback = &TxikiAudio::WriteSoundCallback;
-    
-    // Open default stream to play the audio
-    PaError result = Pa_OpenDefaultStream(&stream, numInputChannels, numOutputChannels, paInt16, sampleRate, bufferLength, callback, sound);
-    if (result != paNoError)
-    {
-      printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
-      return false;
-    }
-
-    // Start audio stream
-    result = Pa_StartStream(stream);
-    if (result != paNoError)
-    {
-      printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
-      return false;
-    }
-
-    return true;
+		return sound->Play(&TxikiAudio::WriteSoundCallback);
   }
 
   bool StopSound(TxikiAudioSound* sound)
   {
-    // abort current stream
-    PaError result = Pa_AbortStream(stream);
-    if (result != paNoError)
-    {
-      printf("TxikiAudio unable to StopSound. PortAudio error: %s\n", Pa_GetErrorText(result));
-      return false;
-    }
-
-    // close the stream
-    result = Pa_CloseStream(stream);
-    if (result != paNoError)
-    {
-      printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
-      return false;
-    }
-
-    // release current sound
-    sound->Release();
-
-    return true;
+		return sound->Stop();
   }
 
   private:
