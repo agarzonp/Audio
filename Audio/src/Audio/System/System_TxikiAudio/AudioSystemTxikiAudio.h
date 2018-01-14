@@ -64,8 +64,8 @@ public:
 
 	bool SetSoundVolume(const AudioSystemSound& audioSystemSound, float volume) override
 	{
-		// TO-DO
-		return false;
+		TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
+		return txikiAudio.SetVolume(sound, volume);
 	}
 };
 

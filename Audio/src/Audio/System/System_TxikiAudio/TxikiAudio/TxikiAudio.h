@@ -38,7 +38,9 @@ struct TxikiAudioSound
 
 	State state{ State::STOPPED };
 
-  void Release()
+	float volume { 1.0f };
+		
+	void Release()
   {
 		Stop();
 
@@ -124,6 +126,12 @@ struct TxikiAudioSound
 
 		state = pause ? State::PAUSED : State::PLAYING;
 		return true;
+	}
+
+	void SetVolume(float v)
+	{
+		// set the volume in the range [0.0f, 1.0f]
+		volume = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
 	}
 };
 
@@ -390,6 +398,12 @@ public:
 		return sound->Pause(pause);
 	}
 
+	bool SetVolume(TxikiAudioSound* sound, float volume)
+	{
+		sound->SetVolume(volume);
+		return true;
+	}
+
   private:
 
     static int WriteSoundCallback(const void *inputBuffer, void *outputBuffer, unsigned long bufferLength, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
@@ -417,23 +431,14 @@ public:
 			auto length = bufferLength > audioLength ? audioLength : bufferLength;
 			
 			// copy the samples into the buffer (Note: We are using PCM16 format!)
-			#define USE_MEMCPY_FIXED 0
-			#if USE_MEMCPY_FIXED
-			std::memcpy(outputBuffer, sound->samples.get() + (sizeof(sound->samples[0]) * sound->sampleIndex), length * 2);
-			sound->sampleIndex += length;
-			#else
-			// copy the samples into the buffer
 			for (size_t i = 0; i < length; i++, sound->sampleIndex++)
 			{
-
-				outBuffer[i] = sound->samples[sound->sampleIndex];
+				float value = float(sound->samples[sound->sampleIndex]) * sound->volume;
+				outBuffer[i] = (short)value;
 			}
-			#endif // USE_MEMCPY_FIXED
 
       return 0;
     }
-
-
 };
 
 #endif // !AUDIO_SYSTEM_TXIKI_AUDIO
