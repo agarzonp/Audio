@@ -29,22 +29,38 @@ struct TxikiAudioSound
 
 	PaStream* stream{ nullptr }; // handle to PortAudio stream
 
-	bool isPaused{ true };
+	enum class State
+	{
+		PLAYING,
+		PAUSED,
+		STOPPED
+	};
+
+	State state{ State::STOPPED };
 
   void Release()
   {
 		Stop();
 
+		// close the stream
+		if (stream)
+		{
+			Pa_CloseStream(stream);
+			stream = nullptr;
+		}
+	
     sampleRate = 44100;
     numChannels = 2;
     numSamples = 0;
 
     samples.reset();
+
+		sampleIndex = 0;
   }
 
 	bool Play(PaStreamCallback* callback)
 	{
-		if (stream)
+		if (state != State::STOPPED)
 		{
 			// sound already playing
 			return true;
@@ -54,6 +70,13 @@ struct TxikiAudioSound
 		PaSampleFormat sampleFormat = paInt16; // for the moment we only allow TxikiAudioSoundFormat::PCM16
 		auto bufferLength = paFramesPerBufferUnspecified; // PortAudio will pick the best possible buffer size
 		
+
+		if (stream)
+		{
+			// make sure that the current stream is closed before opening a new one
+			Pa_CloseStream(stream);
+		}
+
 		// Open default stream to play the audio
 		PaError result = Pa_OpenDefaultStream(&stream, numInputChannels, numChannels, sampleFormat, sampleRate, bufferLength, callback, this);
 		if (result != paNoError)
@@ -61,7 +84,7 @@ struct TxikiAudioSound
 			printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
 			return false;
 		}
-
+		
 		// Start audio stream
 		result = Pa_StartStream(stream);
 		if (result != paNoError)
@@ -70,37 +93,24 @@ struct TxikiAudioSound
 			return false;
 		}
 
-		// set not to be paused
-		isPaused = false;
+		// set playing
+		state = State::PLAYING;
 
 		return true;
 	}
 
 	bool Stop()
-	{
-		if (stream)
+	{		
+		// close current stream
+		if (Pa_CloseStream(stream) == paNoError)
 		{
-			// abort current stream
-			PaError result = Pa_AbortStream(stream);
-			if (result != paNoError)
-			{
-				printf("TxikiAudio unable to StopSound. PortAudio error: %s\n", Pa_GetErrorText(result));
-				return false;
-			}
-
-			// close the stream
-			result = Pa_CloseStream(stream);
-			if (result != paNoError)
-			{
-				printf("TxikiAudio unable to StopSound. PortAudio error: %s\n", Pa_GetErrorText(result));
-				return false;
-			}
+			stream = nullptr;
 		}
-		
+
 		// reset
-		stream = nullptr;
 		sampleIndex = 0;
-		isPaused = true;
+		state = State::STOPPED;
+		stream = nullptr;
 
 		return true;
 	}
@@ -112,7 +122,7 @@ struct TxikiAudioSound
 			return false;
 		}
 
-		isPaused = pause;
+		state = pause ? State::PAUSED : State::PLAYING;
 		return true;
 	}
 };
@@ -389,9 +399,16 @@ public:
 			std::memset(outputBuffer, 0, bufferLength * 2); 
 
 			TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(userData);
-			if (sound->sampleIndex >= sound->numSamples || sound->isPaused)
+			if (sound->sampleIndex >= sound->numSamples)
 			{
 				// no more audio data to write
+				sound->Stop();
+				return 0;
+			}
+
+			if (sound->state == TxikiAudioSound::State::PAUSED)
+			{
+				// do not write data when being paused
 				return 0;
 			}
 
