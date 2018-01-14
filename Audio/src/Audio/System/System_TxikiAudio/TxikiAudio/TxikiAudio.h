@@ -29,6 +29,8 @@ struct TxikiAudioSound
 
 	PaStream* stream{ nullptr }; // handle to PortAudio stream
 
+	bool isPaused{ true };
+
   void Release()
   {
 		Stop();
@@ -68,6 +70,9 @@ struct TxikiAudioSound
 			return false;
 		}
 
+		// set not to be paused
+		isPaused = false;
+
 		return true;
 	}
 
@@ -95,7 +100,19 @@ struct TxikiAudioSound
 		// reset
 		stream = nullptr;
 		sampleIndex = 0;
+		isPaused = true;
 
+		return true;
+	}
+
+	bool Pause(bool pause)
+	{
+		if (!stream)
+		{
+			return false;
+		}
+
+		isPaused = pause;
 		return true;
 	}
 };
@@ -358,6 +375,11 @@ public:
 		return sound->Stop();
   }
 
+	bool PauseSound(TxikiAudioSound* sound, bool pause)
+	{
+		return sound->Pause(pause);
+	}
+
   private:
 
     static int WriteSoundCallback(const void *inputBuffer, void *outputBuffer, unsigned long bufferLength, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
@@ -367,7 +389,7 @@ public:
 			std::memset(outputBuffer, 0, bufferLength * 2); 
 
 			TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(userData);
-			if (sound->sampleIndex >= sound->numSamples)
+			if (sound->sampleIndex >= sound->numSamples || sound->isPaused)
 			{
 				// no more audio data to write
 				return 0;
