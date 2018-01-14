@@ -25,6 +25,8 @@ struct TxikiAudioSound
 
   std::unique_ptr< short[] > samples;
 
+	size_t sampleIndex { 0 };
+
   void Release()
   {
     sampleRate = 44100;
@@ -290,17 +292,15 @@ public:
 
   bool PlaySound(TxikiAudioSound* sound)
   {
-    // FIXME: set properly the variables below
     int numInputChannels = 0;
     int numOutputChannels = sound->numChannels;
     PaSampleFormat sampleFormat = paInt16; // for the moment we only allow TxikiAudioSoundFormat::PCM16
     double sampleRate = sound->sampleRate;
-    unsigned long framesPerBuffer = 0;
+    unsigned long bufferLength = paFramesPerBufferUnspecified; // PortAudio will pick the best possible buffer size
     PaStreamCallback* callback = &TxikiAudio::WriteSoundCallback;
-    static TxikiAudio* userData = this;
     
     // Open default stream to play the audio
-    PaError result = Pa_OpenDefaultStream(&stream, numInputChannels, numOutputChannels, paInt16, sampleRate, framesPerBuffer, callback, &userData);
+    PaError result = Pa_OpenDefaultStream(&stream, numInputChannels, numOutputChannels, paInt16, sampleRate, bufferLength, callback, sound);
     if (result != paNoError)
     {
       printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
@@ -344,9 +344,32 @@ public:
 
   private:
 
-    static int WriteSoundCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData)
+    static int WriteSoundCallback(const void *inputBuffer, void *outputBuffer, unsigned long bufferLength, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
     {
-      printf("WriteSoundCallback: TO-DO audio processing!\n");
+			// reset buffer 
+			short* outBuffer = static_cast<short*>(outputBuffer);
+			for (size_t i = 0; i < bufferLength; i++)
+			{
+				// copy the sample into the buffer
+				outBuffer[i] = 0;
+			}
+
+			TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(userData);
+			if (sound->sampleIndex >= sound->numSamples)
+			{
+				// no more audio data to write
+				return 0;
+			}
+
+			auto audioLength = sound->numSamples - sound->sampleIndex;
+			auto emptyBufferFrames = bufferLength - audioLength;
+			auto length = bufferLength > audioLength ? audioLength : bufferLength;
+			
+			for (size_t i = 0; i < length; i++, sound->sampleIndex++)
+			{
+				// copy the sample into the buffer
+				outBuffer[i] = sound->samples[sound->sampleIndex];
+			}
 
       return 0;
     }
