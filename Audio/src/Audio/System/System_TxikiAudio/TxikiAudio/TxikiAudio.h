@@ -346,13 +346,9 @@ public:
 
     static int WriteSoundCallback(const void *inputBuffer, void *outputBuffer, unsigned long bufferLength, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
     {
-			// reset buffer 
+			// reset buffer (Note: We are using PCM16 format!) 
 			short* outBuffer = static_cast<short*>(outputBuffer);
-			for (size_t i = 0; i < bufferLength; i++)
-			{
-				// copy the sample into the buffer
-				outBuffer[i] = 0;
-			}
+			std::memset(outputBuffer, 0, bufferLength * 2); 
 
 			TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(userData);
 			if (sound->sampleIndex >= sound->numSamples)
@@ -365,11 +361,19 @@ public:
 			auto emptyBufferFrames = bufferLength - audioLength;
 			auto length = bufferLength > audioLength ? audioLength : bufferLength;
 			
+			// copy the samples into the buffer (Note: We are using PCM16 format!)
+			#define USE_MEMCPY_FIXED 0
+			#if USE_MEMCPY_FIXED
+			std::memcpy(outputBuffer, sound->samples.get() + (sizeof(sound->samples[0]) * sound->sampleIndex), length * 2);
+			sound->sampleIndex += length;
+			#else
+			// copy the samples into the buffer
 			for (size_t i = 0; i < length; i++, sound->sampleIndex++)
 			{
-				// copy the sample into the buffer
+
 				outBuffer[i] = sound->samples[sound->sampleIndex];
 			}
+			#endif // USE_MEMCPY_FIXED
 
       return 0;
     }
