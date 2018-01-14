@@ -16,18 +16,15 @@ enum class TxikiAudioSoundFormat
   PCM16
 };
 
-
 struct TxikiAudioSound
 {
-  unsigned int sampleRate { 44100 };
-  unsigned int numChannels { 2 };
-  unsigned int numSamples{ 0 };
+  size_t sampleRate { 44100 };
+	size_t numChannels { 2 };
+	size_t numSamples{ 0 };
 
   std::unique_ptr< short[] > samples;
 
 	size_t sampleIndex { 0 };
-
-	PaStream* stream{ nullptr }; // handle to PortAudio stream
 
 	enum class State
 	{
@@ -45,13 +42,6 @@ struct TxikiAudioSound
   {
 		Stop();
 
-		// close the stream
-		if (stream)
-		{
-			Pa_CloseStream(stream);
-			stream = nullptr;
-		}
-	
     sampleRate = 44100;
     numChannels = 2;
     numSamples = 0;
@@ -61,68 +51,23 @@ struct TxikiAudioSound
 		sampleIndex = 0;
   }
 
-	bool Play(PaStreamCallback* callback)
+	void Play()
 	{
-		if (state != State::STOPPED)
-		{
-			// sound already playing
-			return true;
-		}
-
-		int numInputChannels = 0;
-		PaSampleFormat sampleFormat = paInt16; // for the moment we only allow TxikiAudioSoundFormat::PCM16
-		auto bufferLength = paFramesPerBufferUnspecified; // PortAudio will pick the best possible buffer size
-		
-
-		if (stream)
-		{
-			// make sure that the current stream is closed before opening a new one
-			Pa_CloseStream(stream);
-		}
-
-		// Open default stream to play the audio
-		PaError result = Pa_OpenDefaultStream(&stream, numInputChannels, numChannels, sampleFormat, sampleRate, bufferLength, callback, this);
-		if (result != paNoError)
-		{
-			printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
-			return false;
-		}
-		
-		// Start audio stream
-		result = Pa_StartStream(stream);
-		if (result != paNoError)
-		{
-			printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
-			return false;
-		}
-
-		// set playing
 		state = State::PLAYING;
-
-		return true;
 	}
 
-	bool Stop()
+	void Stop()
 	{		
-		// close current stream
-		if (Pa_CloseStream(stream) == paNoError)
-		{
-			stream = nullptr;
-		}
-
 		// reset
 		sampleIndex = 0;
 		state = State::STOPPED;
 		volume = 1.0f;
 		pitch = 1.0f;
-		stream = nullptr;
-
-		return true;
 	}
 
 	bool Pause(bool pause)
 	{
-		if (!stream)
+		if (state == State::STOPPED)
 		{
 			return false;
 		}
@@ -142,12 +87,43 @@ struct TxikiAudioSound
 		// set the volume in the range [0.125f, 8.0f] 
 		pitch = p < 0.125f ? 0.125f : (p > 8.0f ? 8.0f : p);
 	}
-};
 
+	void WriteSound(short* outBuffer, size_t bufferLength)
+	{
+		if (sampleIndex >= numSamples)
+		{
+			// no more audio data to write
+			Stop();
+			return;
+		}
+
+		if (state != TxikiAudioSound::State::PLAYING)
+		{
+			// do not write data when not playing
+			return;
+		}
+
+		size_t audioLength = size_t((float(numSamples - sampleIndex)) / pitch);
+		auto length = bufferLength > audioLength ? audioLength : bufferLength;
+
+		// copy the samples into the buffer (Note: We are only using PCM16 format!)
+		float fsampleIndex = (float)sampleIndex;
+		for (size_t i = 0; i < length; i++)
+		{
+			float value = float(samples[(size_t)fsampleIndex]) * volume;
+			outBuffer[i] = (short)value;
+
+			fsampleIndex += pitch;
+		}
+
+		sampleIndex = audioLength > 1 ? (size_t)fsampleIndex : numSamples;
+
+		return;
+	}
+};
 
 class TxikiAudio 
 {
-
   // Wave file format
   struct WaveFileFormat_
   {
@@ -189,6 +165,8 @@ class TxikiAudio
 
   TxikiAudioSound sound;
 
+	PaStream* stream_1outputChannel_PCM16_sampleRate11025{ nullptr }; // handle to PortAudio stream
+
   bool initialised{ false };
 
 public:
@@ -217,6 +195,13 @@ public:
   {
     // release the sound
     sound.Release();
+
+		// close the stream
+		if (stream_1outputChannel_PCM16_sampleRate11025)
+		{
+			Pa_CloseStream(stream_1outputChannel_PCM16_sampleRate11025);
+			stream_1outputChannel_PCM16_sampleRate11025 = nullptr;
+		}
 
     // terminate portaudio
     auto result = Pa_Terminate();
@@ -394,12 +379,19 @@ public:
 
   bool PlaySound(TxikiAudioSound* sound)
   {
-		return sound->Play(&TxikiAudio::WriteSoundCallback);
+		if (StartStream(sound))
+		{
+			sound->Play();
+			return true;
+		}
+		
+		return false;
   }
 
   bool StopSound(TxikiAudioSound* sound)
   {
-		return sound->Stop();
+		sound->Stop();
+		return true;
   }
 
 	bool PauseSound(TxikiAudioSound* sound, bool pause)
@@ -419,58 +411,64 @@ public:
 		return true;
 	}
 
+	protected:
+
+		void WriteSounds(void* outputBuffer, size_t bufferLength)
+		{
+			// reset buffer (Note: We are using PCM16 format!) 
+			short* outBuffer = static_cast<short*>(outputBuffer);
+			std::memset(outputBuffer, 0, bufferLength * 2);
+
+			sound.WriteSound(outBuffer, bufferLength);
+		}
+
   private:
 
     static int WriteSoundCallback(const void *inputBuffer, void *outputBuffer, unsigned long bufferLength, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
     {
-			// reset buffer (Note: We are using PCM16 format!) 
-			short* outBuffer = static_cast<short*>(outputBuffer);
-			std::memset(outputBuffer, 0, bufferLength * 2); 
+			TxikiAudio* txikiAudio = static_cast<TxikiAudio*>(userData);
+			txikiAudio->WriteSounds(outputBuffer, bufferLength);
 
-			TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(userData);
-			if (sound->sampleIndex >= sound->numSamples)
-			{
-				// no more audio data to write
-				sound->Stop();
-				return 0;
-			}
-
-			if (sound->state == TxikiAudioSound::State::PAUSED)
-			{
-				// do not write data when being paused
-				return 0;
-			}
-
-			/*
-			auto audioLength = sound->numSamples - sound->sampleIndex;
-			auto emptyBufferFrames = bufferLength - audioLength;
-			auto length = bufferLength > audioLength ? audioLength : bufferLength;
-			
-			// copy the samples into the buffer (Note: We are using PCM16 format!)
-			for (size_t i = 0; i < length; i++, sound->sampleIndex++)
-			{
-				float value = float(sound->samples[sound->sampleIndex]) * sound->volume;
-				outBuffer[i] = (short)value;
-			}
-			*/
-
-			size_t audioLength = size_t((float(sound->numSamples - sound->sampleIndex)) / sound->pitch);
-			auto length = bufferLength > audioLength ? audioLength : bufferLength;
-
-			// copy the samples into the buffer (Note: We are using PCM16 format!)
-			float sampleIndex = (float)sound->sampleIndex;
-			for (size_t i = 0; i < length; i++)
-			{
-				float value = float(sound->samples[(size_t)sampleIndex]) * sound->volume;
-				outBuffer[i] = (short)value;
-
-				sampleIndex += sound->pitch;
-			}
-
-			sound->sampleIndex = audioLength > 1 ? (size_t)sampleIndex : sound->numSamples;
-
-      return 0;
+			return 0;
     }
+
+		bool StartStream(TxikiAudioSound* sound)
+		{
+			if (sound->numChannels != 1 || sound->sampleRate != 11025)
+			{
+				// FIXME: Make this more generic
+				printf("Only 1 output channel and 11025 sample rate is supported, Sound numChannels (%d) sampleRate(%d)", sound->numChannels, sound->sampleRate);
+				return false;
+			}
+
+			if (!stream_1outputChannel_PCM16_sampleRate11025)
+			{
+				// FIXME: for the moment we only allow this kind of configuration
+				int numInputChannels = 0;
+				int numOutputChannels = 1;
+				PaSampleFormat sampleFormat = paInt16;
+				size_t sampleRate = 11025;
+				auto bufferLength = paFramesPerBufferUnspecified; // PortAudio will pick the best possible buffer size
+
+				// Open default stream to play the audio
+				PaError result = Pa_OpenDefaultStream(&stream_1outputChannel_PCM16_sampleRate11025, numInputChannels, numOutputChannels, sampleFormat, sampleRate, bufferLength, WriteSoundCallback, this);
+				if (result != paNoError)
+				{
+					printf("TxikiAudio unable to open PortAudio stream. PortAudio error: %s\n", Pa_GetErrorText(result));
+					return false;
+				}
+
+				// Start audio stream
+				result = Pa_StartStream(stream_1outputChannel_PCM16_sampleRate11025);
+				if (result != paNoError)
+				{
+					printf("TxikiAudio unable to PlaySound. PortAudio error: %s\n", Pa_GetErrorText(result));
+					return false;
+				}
+			}
+
+			return true;
+		}
 };
 
 #endif // !AUDIO_SYSTEM_TXIKI_AUDIO
