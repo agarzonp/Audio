@@ -154,6 +154,23 @@ public:
 
 		return audioSystem->SetSoundVolume(*soundMapIt->second, volume);
 	}
+
+	bool SetSoundPitch(const std::string& soundName, float pitch)
+	{
+		if (!audioSystem)
+		{
+			return false;
+		}
+
+		auto soundMapIt = soundMap.find(soundName);
+		if (soundMapIt == soundMap.end())
+		{
+			printf("Failed to set pitch for sound %s. Error: Sound not loaded.", soundName.c_str());
+			return false;
+		}
+
+		return audioSystem->SetSoundPitch(*soundMapIt->second, pitch);
+	}
 	
 protected:
 

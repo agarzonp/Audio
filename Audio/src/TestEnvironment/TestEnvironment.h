@@ -54,6 +54,24 @@ public:
 			audioManager.SetSoundVolume("sound.wav", volume);
 			break;
 		}
+		case GLFW_KEY_KP_MULTIPLY:
+		case GLFW_KEY_KP_DIVIDE:
+		{
+			static float pitch = 1.0f;
+			pitch += (key == GLFW_KEY_KP_MULTIPLY) ? 0.25f : -0.25f;
+			if (pitch < 0.125)
+			{
+				pitch = 0.125;
+			}
+			else if (pitch > 8.0f)
+			{
+				pitch = 8.0f;
+			}
+
+			audioManager.SetSoundPitch("sound.wav", pitch);
+			break;
+		}
+		
 			break;
 		default:
 			break;

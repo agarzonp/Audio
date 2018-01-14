@@ -169,6 +169,21 @@ public:
 
 		return (result == FMOD_OK);
 	}
+
+	bool SetSoundPitch(const AudioSystemSound& audioSystemSound, float pitch) override
+	{
+		FMOD::Channel* channel = static_cast<FMOD::Channel*> (audioSystemSound.GetSoundControl());
+		if (!channel)
+		{
+			return false;
+		}
+
+		FMOD_RESULT result = channel->setPitch(pitch);
+		if (result != FMOD_OK)
+			printf("Failed to set pitch for sound. Error: %s \n", FMOD_ErrorString(result));
+
+		return (result == FMOD_OK);
+	}
 };
 
 #endif // !AUDIO_SYSTEM_FMOD

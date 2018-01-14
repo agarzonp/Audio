@@ -39,6 +39,7 @@ struct TxikiAudioSound
 	State state{ State::STOPPED };
 
 	float volume { 1.0f };
+	float pitch{ 1.0f };
 		
 	void Release()
   {
@@ -112,6 +113,8 @@ struct TxikiAudioSound
 		// reset
 		sampleIndex = 0;
 		state = State::STOPPED;
+		volume = 1.0f;
+		pitch = 1.0f;
 		stream = nullptr;
 
 		return true;
@@ -132,6 +135,12 @@ struct TxikiAudioSound
 	{
 		// set the volume in the range [0.0f, 1.0f]
 		volume = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+	}
+
+	void SetPitch(float p)
+	{
+		// set the volume in the range [0.125f, 8.0f] 
+		pitch = p < 0.125f ? 0.125f : (p > 8.0f ? 8.0f : p);
 	}
 };
 
@@ -404,6 +413,12 @@ public:
 		return true;
 	}
 
+	bool SetPitch(TxikiAudioSound* sound, float pitch)
+	{
+		sound->SetPitch(pitch);
+		return true;
+	}
+
   private:
 
     static int WriteSoundCallback(const void *inputBuffer, void *outputBuffer, unsigned long bufferLength, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
@@ -426,6 +441,7 @@ public:
 				return 0;
 			}
 
+			/*
 			auto audioLength = sound->numSamples - sound->sampleIndex;
 			auto emptyBufferFrames = bufferLength - audioLength;
 			auto length = bufferLength > audioLength ? audioLength : bufferLength;
@@ -436,6 +452,22 @@ public:
 				float value = float(sound->samples[sound->sampleIndex]) * sound->volume;
 				outBuffer[i] = (short)value;
 			}
+			*/
+
+			size_t audioLength = size_t((float(sound->numSamples - sound->sampleIndex)) / sound->pitch);
+			auto length = bufferLength > audioLength ? audioLength : bufferLength;
+
+			// copy the samples into the buffer (Note: We are using PCM16 format!)
+			float sampleIndex = (float)sound->sampleIndex;
+			for (size_t i = 0; i < length; i++)
+			{
+				float value = float(sound->samples[(size_t)sampleIndex]) * sound->volume;
+				outBuffer[i] = (short)value;
+
+				sampleIndex += sound->pitch;
+			}
+
+			sound->sampleIndex = audioLength > 1 ? (size_t)sampleIndex : sound->numSamples;
 
       return 0;
     }

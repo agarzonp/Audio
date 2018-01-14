@@ -67,6 +67,12 @@ public:
 		TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
 		return txikiAudio.SetVolume(sound, volume);
 	}
+
+	bool SetSoundPitch(const AudioSystemSound& audioSystemSound, float pitch) override
+	{
+		TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
+		return txikiAudio.SetPitch(sound, pitch);
+	}
 };
 
 #endif // !AUDIO_SYSTEM_TXIKI_AUDIO
