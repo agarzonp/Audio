@@ -44,6 +44,8 @@ struct TxikiAudioSound
 
 	float volume { 1.0f };
 	float pitch{ 1.0f };
+
+	float basePitch{ 1.0f };
 		
 	void Release()
   {
@@ -67,7 +69,7 @@ struct TxikiAudioSound
 		sampleIndex = 0;
 		state = State::STOPPED;
 		volume = 1.0f;
-		pitch = 1.0f;
+		pitch = basePitch;
 	}
 
 	bool Pause(bool pause)
@@ -451,6 +453,7 @@ public:
 			sound->numSamples = samplesBufferSize;
 			sound->samples = std::move(samples);
 			sound->pitch = float(sampleRate) / float(TxikiAudioSoundSampleRate::SampleRate_44100Hz); // Resample to 44100Hz by modifying the pitch
+			sound->basePitch = sound->pitch;
 
 			return sound;
 		}
