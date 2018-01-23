@@ -91,6 +91,29 @@ public:
 		return false;
 	}
 
+	bool UnloadSound(const std::string& soundName)
+	{
+		if (!audioSystem)
+		{
+			return false;
+		}
+
+		auto soundMapIt = soundMap.find(soundName);
+		if (soundMapIt == soundMap.end())
+		{
+			printf("Failed to unload sound %s. Error: Sound not loaded.", soundName.c_str());
+			return false;
+		}
+
+		if (audioSystem->UnloadSound(*soundMapIt->second))
+		{
+			soundMap.erase(soundMapIt);
+			return true;
+		}
+
+		return false;
+	}
+
 	bool PlaySound(const std::string& soundName)
 	{
 		if (!audioSystem)
