@@ -3,7 +3,9 @@
 
 #include <fstream>
 #include <functional>
+#include <list>
 #include <memory>
+
 #include "portaudio/portaudio.h"
 
 enum class TxikiAudioFileFormat
@@ -93,16 +95,16 @@ struct TxikiAudioSound
 
 	void WriteSound(short* outBuffer, size_t framesPerBuffer)
 	{
+		if (state != TxikiAudioSound::State::PLAYING)
+		{
+			// do not write data when not playing
+			return;
+		}
+
 		if (sampleIndex >= numSamples)
 		{
 			// no more audio data to write
 			Stop();
-			return;
-		}
-
-		if (state != TxikiAudioSound::State::PLAYING)
-		{
-			// do not write data when not playing
 			return;
 		}
 
@@ -115,7 +117,7 @@ struct TxikiAudioSound
 		for (size_t i = 0; i < length; i++)
 		{
 			float value = float(samples[(size_t)fsampleIndex]) * volume;
-			outBuffer[i] = (short)value;
+			outBuffer[i] += (short)value;
 
 			fsampleIndex += pitch;
 		}
@@ -167,9 +169,11 @@ class TxikiAudio
    
   } WavFileFormat;
 
-  TxikiAudioSound sound;
+	// sounds
+	std::list<TxikiAudioSound> sounds;
 
-	PaStream* stream_PCM16{ nullptr }; // handle to PortAudio stream
+	// handle to PortAudio stream
+	PaStream* stream_PCM16{ nullptr }; 
 
   bool initialised{ false };
 
@@ -197,9 +201,12 @@ public:
 
   bool Terminate()
   {
-    // release the sound
-    sound.Release();
-
+    // release the sounds
+		for (auto& sound : sounds)
+		{
+			sound.Release();
+		}
+    
 		// close the stream
 		if (stream_PCM16)
 		{
@@ -343,7 +350,7 @@ public:
 		size_t samplesBufferSize = numChannels == 1 ? numSamples * TxikiAudioSound::NUM_CHANNELS : numSamples;
     std::unique_ptr<short[] > samples(new short[samplesBufferSize]);
 
-		size_t d = size_t(float(numChannels) / 0.5f);
+		size_t d = numChannels == 1 ? 2 : 1;
     for (size_t i = 0, samplesBufferIndex = 0; i < numSamples; i++, samplesBufferIndex += d)
     {
       short sample = 0; // Note: We are using PCM16 format!
@@ -366,12 +373,8 @@ public:
 
     iFile.close();
 
-    // fill sound data
-    sound.numSamples = samplesBufferSize;
-    sound.samples = std::move(samples);
-		sound.pitch = float(sampleRate) / float(TxikiAudioSoundSampleRate::SampleRate_44100Hz); // Resample to 44100Hz by modifying the pitch
-
-    outSound = &sound;
+    // get a new TxikiAudioSound
+    outSound = GetTxikiAudioSound(samples, samplesBufferSize, sampleRate);
 
 		return true;
 	}
@@ -423,13 +426,46 @@ public:
 
 	protected:
 
+		TxikiAudioSound* GetTxikiAudioSound(std::unique_ptr<short[] >& samples, size_t samplesBufferSize, size_t sampleRate)
+		{
+			TxikiAudioSound* sound = nullptr;
+
+			// reuse a not used sound
+			for (auto& s : sounds)
+			{
+				if (!s.samples)
+				{
+					sound = &s;
+					break;
+				}
+			}
+
+			// create a new sound if all sounds are in use
+			if (!sound)
+			{
+				sounds.emplace_back(TxikiAudioSound());
+				sound = &sounds.back();
+			}
+
+			// set sound data
+			sound->numSamples = samplesBufferSize;
+			sound->samples = std::move(samples);
+			sound->pitch = float(sampleRate) / float(TxikiAudioSoundSampleRate::SampleRate_44100Hz); // Resample to 44100Hz by modifying the pitch
+
+			return sound;
+		}
+
 		void WriteSounds(void* outputBuffer, size_t framesPerBuffer)
 		{
 			// reset buffer (Note: We are using PCM16 format!) 
 			short* outBuffer = static_cast<short*>(outputBuffer);
 			std::memset(outputBuffer, 0, sizeof(short) * framesPerBuffer * TxikiAudioSound::NUM_CHANNELS);
 
-			sound.WriteSound(outBuffer, framesPerBuffer);
+			// write sounds
+			for (auto& sound : sounds)
+			{
+				sound.WriteSound(outBuffer, framesPerBuffer);
+			}
 		}
 
   private:

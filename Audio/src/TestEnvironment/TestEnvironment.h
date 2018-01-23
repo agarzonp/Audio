@@ -31,8 +31,16 @@ public:
 	{
 		switch (key)
 		{
+		case GLFW_KEY_0:
+			audioManager.UnloadSound("sound.wav");
+			break;
 		case GLFW_KEY_1:
 			audioManager.LoadSound("sound.wav");
+			audioManager.LoadSound("rain.wav");
+			audioManager.LoadSound("rain1.wav");
+			break;
+		case GLFW_KEY_Q:
+			audioManager.PlaySound("rain.wav");
 			break;
 		case GLFW_KEY_2:
 			audioManager.PlaySound("sound.wav");
