@@ -24,7 +24,7 @@ public:
 		// TO-DO
 	}
 
-  bool LoadSound(const std::string& soundName, AudioSystemSound& outSound) override
+  bool LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode, AudioSystemSound& outSound) override
 	{
     TxikiAudioSound* sound = nullptr;
 		bool loaded = txikiAudio.LoadSound(soundName, sound);

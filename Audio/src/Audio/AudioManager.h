@@ -60,7 +60,7 @@ public:
 		audioSystem->Update();
 	}
 
-	bool LoadSound(const std::string& soundName)
+	bool LoadSound(const std::string& soundName, AudioSystemSoundMode soundMode = AudioSystemSoundMode_DEFAULT)
 	{
 		if (!audioSystem)
 		{
@@ -81,7 +81,7 @@ public:
     }
 
 		static const char* path = "assets/Audio/";
-    if (audioSystem->LoadSound(std::string(path) + soundName, *sound))
+    if (audioSystem->LoadSound(std::string(path) + soundName, soundMode, *sound))
     {
       // insert a new pair in the map
       soundMap.insert(std::make_pair(soundName, sound));

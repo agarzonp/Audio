@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "AudioSystemDefines.h"
+
 // A wrapper for the actual system sound
 class AudioSystemSound
 {
@@ -75,7 +77,7 @@ public:
 
 	virtual void Update() = 0;
 
-	virtual bool LoadSound(const std::string& soundName, AudioSystemSound& outSound) = 0;
+	virtual bool LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode, AudioSystemSound& outSound) = 0;
 	virtual bool UnloadSound(const AudioSystemSound& audioSystemSound) = 0;
 
 	virtual bool PlaySound(AudioSystemSound& audioSystemSound) = 0;

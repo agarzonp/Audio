@@ -48,17 +48,27 @@ public:
 		system->update();
 	}
 
-  bool LoadSound(const std::string& soundName, AudioSystemSound& outSound) override
+  bool LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode, AudioSystemSound& outSound) override
 	{
 		if (!system)
 		{
 			return false;
 		}
 
- 
+		// get sound mode
+		FMOD_MODE soundMode = FMOD_DEFAULT;
+		if (audioSystemSoundMode & AudioSystemSoundMode_2D)
+		{
+			soundMode |= FMOD_2D;
+		}
+		else if (audioSystemSoundMode & AudioSystemSoundMode_3D)
+		{
+			soundMode |= FMOD_3D;
+		}
+
     // create the sound
 		FMOD::Sound* sound = nullptr;
-		FMOD_RESULT result = system->createSound(soundName.c_str(), FMOD_DEFAULT, nullptr, &sound);
+		FMOD_RESULT result = system->createSound(soundName.c_str(), soundMode, nullptr, &sound);
     if (result != FMOD_OK)
     {
       printf("Failed to load sound. Error: %s \n", FMOD_ErrorString(result));

@@ -25,6 +25,7 @@
     <ClInclude Include="src\Audio\AudioManager.h" />
     <ClInclude Include="src\Audio\System\AudioSystem.h" />
     <ClInclude Include="src\Audio\System\System_Common\AudioSystemCommon.h" />
+    <ClInclude Include="src\Audio\System\System_Common\AudioSystemDefines.h" />
     <ClInclude Include="src\Audio\System\System_FMOD\AudioSystemFMOD.h" />
     <ClInclude Include="src\Audio\System\System_TxikiAudio\AudioSystemTxikiAudio.h" />
     <ClInclude Include="src\Audio\System\System_TxikiAudio\TxikiAudio\TxikiAudio.h" />
