@@ -45,6 +45,14 @@ public:
 			return;
 		}
 
+		// set listener
+		const FMOD_VECTOR* listenerPos = reinterpret_cast<const FMOD_VECTOR*> (&listener.GetPosition());
+		const FMOD_VECTOR* listenerVelocity = reinterpret_cast<const FMOD_VECTOR*> (&listener.GetVelocity());
+		const FMOD_VECTOR* listenerForward = reinterpret_cast<const FMOD_VECTOR*> (&listener.GetForward());
+		const FMOD_VECTOR* listenerUp = reinterpret_cast<const FMOD_VECTOR*> (&listener.GetUp());
+		system->set3DListenerAttributes(0, listenerPos, listenerVelocity, listenerForward, listenerUp);
+
+		// update the system
 		system->update();
 	}
 

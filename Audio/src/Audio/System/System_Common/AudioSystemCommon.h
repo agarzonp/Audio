@@ -67,6 +67,31 @@ private:
     std::vector<AudioSystemSound> sounds;
 };
 
+
+// AudioSystemListener
+class AudioSystemListener
+{
+	AudioSystemVector position;
+	AudioSystemVector velocity;
+	AudioSystemVector forward;
+	AudioSystemVector up;
+
+public:
+
+	void Set(const AudioSystemVector& position_, const AudioSystemVector& velocity_, const AudioSystemVector& forward_, const AudioSystemVector& up_)
+	{
+		position = position_;
+		velocity = velocity_;
+		forward = forward_;
+		up = up_;
+	}
+
+	const AudioSystemVector& GetPosition() { return position; }
+	const AudioSystemVector& GetVelocity() { return velocity; }
+	const AudioSystemVector& GetForward() { return forward; }
+	const AudioSystemVector& GetUp() { return up; }
+};
+
 // Interface for the AudioSystem
 class IAudioSystem
 {
@@ -87,9 +112,14 @@ public:
 	virtual bool SetSoundVolume(const AudioSystemSound& audioSystemSound, float volume) = 0;
 	virtual bool SetSoundPitch(const AudioSystemSound& audioSystemSound, float pitch) = 0;
 
+	void SetListener(const AudioSystemVector& position, const AudioSystemVector& velocity, const AudioSystemVector& forward, const AudioSystemVector& up)
+	{
+		listener.Set(position, velocity, forward, up);
+	}
+
 protected:
 
-  
+	AudioSystemListener listener;
 };
 
 #endif // !AUDIO_SYSTEM_IMPL_H
