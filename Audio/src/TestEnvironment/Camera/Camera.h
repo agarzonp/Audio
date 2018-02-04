@@ -77,8 +77,9 @@ public:
 		UpdateCameraVectors();
 	}
 
-	glm::mat3 GetAxis() { return glm::mat3(right, up, forward);	}
-	glm::vec3 GetPosition() { return pos; }
+	const glm::vec3& GetPosition()const  { return pos; }
+	const glm::vec3& GetForward() const{ return forward; }
+	const glm::vec3& GetUp() const { return up; }
 
 protected:
 	Camera() {}

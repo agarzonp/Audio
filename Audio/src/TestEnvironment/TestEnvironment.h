@@ -36,7 +36,7 @@ public:
 			break;
 		case GLFW_KEY_1:
 			audioManager.LoadSound("sound.wav");
-			audioManager.LoadSound("rain.wav");
+			audioManager.LoadSound("rain.wav", AudioSystemSoundMode_3D);
 			audioManager.LoadSound("rain1.wav");
 			break;
 		case GLFW_KEY_Q:
@@ -97,6 +97,7 @@ public:
 	{
     camera.Update(deltaTime);
 
+		audioManager.SetListener(camera.GetPosition(), glm::vec3(), camera.GetForward(), camera.GetUp());
 		audioManager.Update();
 	}
 

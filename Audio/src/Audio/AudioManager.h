@@ -195,6 +195,16 @@ public:
 		return audioSystem->SetSoundPitch(*soundMapIt->second, pitch);
 	}
 	
+	void SetListener(const glm::vec3& position, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up)
+	{
+		AudioSystemVector p = {position.x, position.y, position.z };
+		AudioSystemVector v = { velocity.x, velocity.y, velocity.z };;
+		AudioSystemVector f = { forward.x, forward.y, forward.z };;
+		AudioSystemVector u = { up.x, up.y, up.z };;
+
+		audioSystem->SetListener(p, v, f, u);
+	}
+
 protected:
 
 	bool PauseSound(const std::string& soundName, bool pause)

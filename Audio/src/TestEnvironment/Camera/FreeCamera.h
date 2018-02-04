@@ -12,8 +12,8 @@ public:
 
 	void Update(float deltaTime) override
 	{
-		static const float speed = 0.0001f;
-		static const float angle = 0.0067f;
+		static const float speed = 0.01f;
+		static const float angle = 0.0007f;
 
     if (Input::isKeyPressed(GLFW_KEY_W))
     {
