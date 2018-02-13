@@ -4,6 +4,8 @@
 #include "FMOD/fmod.hpp"
 #include "FMOD/fmod_errors.h"
 
+#include "FMODSoundController.h"
+
 #include <vector>
 
 class AudioSystemFMOD : public IAudioSystem
@@ -118,7 +120,8 @@ public:
     FMOD_RESULT result = system->playSound(sound, nullptr, paused, &channel);
     if (result == FMOD_OK)
 		{
-			audioSystemSound.SetSoundControl(channel);
+			std::unique_ptr<AudioSystemSoundController> controller = std::make_unique<FMODSoundController>(channel);
+			audioSystemSound.SetSoundController(controller);
 		}
 		else
 		{
@@ -135,17 +138,7 @@ public:
 			return false;
 		}
 
-		FMOD::Channel* channel = static_cast<FMOD::Channel*> (audioSystemSound.GetSoundControl());
-		if (!channel)
-		{
-			return false;
-		}
-
-		FMOD_RESULT result = channel->stop();
-		if (result != FMOD_OK)
-			printf("Failed to stop sound. Error: %s \n", FMOD_ErrorString(result));
-
-		return (result == FMOD_OK);
+		return audioSystemSound.GetSoundController()->Stop();
 	}
 
 	bool PauseSound(const AudioSystemSound& audioSystemSound, bool pause) override
@@ -155,17 +148,7 @@ public:
 			return false;
 		}
 
-		FMOD::Channel* channel = static_cast<FMOD::Channel*> (audioSystemSound.GetSoundControl());
-		if (!channel)
-		{
-			return false;
-		}
-
-		FMOD_RESULT result = channel->setPaused(pause);
-		if (result != FMOD_OK)
-			printf("Failed to %s sound. Error: %s \n", pause ? "pause" : "resume",  FMOD_ErrorString(result));
-
-		return (result == FMOD_OK);
+		return audioSystemSound.GetSoundController()->Pause(pause);
 	}
 
 	bool SetSoundVolume(const AudioSystemSound& audioSystemSound, float volume) override
@@ -175,32 +158,17 @@ public:
 			return false;
 		}
 
-		FMOD::Channel* channel = static_cast<FMOD::Channel*> (audioSystemSound.GetSoundControl());
-		if (!channel)
-		{
-			return false;
-		}
-
-		FMOD_RESULT result = channel->setVolume(volume);
-		if (result != FMOD_OK)
-			printf("Failed to set volume for sound. Error: %s \n", FMOD_ErrorString(result));
-
-		return (result == FMOD_OK);
+		return audioSystemSound.GetSoundController()->SetVolume(volume);
 	}
 
 	bool SetSoundPitch(const AudioSystemSound& audioSystemSound, float pitch) override
 	{
-		FMOD::Channel* channel = static_cast<FMOD::Channel*> (audioSystemSound.GetSoundControl());
-		if (!channel)
+		if (!system)
 		{
 			return false;
 		}
 
-		FMOD_RESULT result = channel->setPitch(pitch);
-		if (result != FMOD_OK)
-			printf("Failed to set pitch for sound. Error: %s \n", FMOD_ErrorString(result));
-
-		return (result == FMOD_OK);
+		return audioSystemSound.GetSoundController()->SetPitch(pitch);
 	}
 };
 

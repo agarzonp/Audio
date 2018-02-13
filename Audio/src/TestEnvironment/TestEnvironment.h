@@ -32,34 +32,32 @@ public:
 		switch (key)
 		{
 		case GLFW_KEY_0:
-			audioManager.UnloadSound("sound.wav");
+			AudioManager::UnloadSound("rain.wav");
 			break;
 		case GLFW_KEY_1:
-			audioManager.LoadSound("sound.wav");
-			audioManager.LoadSound("rain.wav", AudioSystemSoundMode_3D);
-			audioManager.LoadSound("rain1.wav");
+			AudioManager::LoadSound("rain.wav");
 			break;
-		case GLFW_KEY_Q:
-			audioManager.PlaySound("rain.wav");
+		case GLFW_KEY_TAB:
+			audioSource.Play();
 			break;
 		case GLFW_KEY_2:
-			audioManager.PlaySound("sound.wav");
+			AudioManager::PlaySound("rain.wav");
 			break;
 		case GLFW_KEY_3:
-			audioManager.StopSound("sound.wav");
+			AudioManager::StopSound("rain.wav");
 			break;
 		case GLFW_KEY_4:
-			audioManager.PauseSound("sound.wav");
+			AudioManager::PauseSound("rain.wav");
 			break;
 		case GLFW_KEY_5:
-			audioManager.ResumeSound("sound.wav");
+			AudioManager::ResumeSound("rain.wav");
 			break;
 		case GLFW_KEY_KP_ADD:
 		case GLFW_KEY_KP_SUBTRACT:
 		{
 			static float volume = 1.0f;
 			volume += (key == GLFW_KEY_KP_ADD) ? 0.05f: -0.05f;
-			audioManager.SetSoundVolume("sound.wav", volume);
+			AudioManager::SetSoundVolume("rain.wav", volume);
 			break;
 		}
 		case GLFW_KEY_KP_MULTIPLY:
@@ -76,7 +74,7 @@ public:
 				pitch = 8.0f;
 			}
 
-			audioManager.SetSoundPitch("sound.wav", pitch);
+			AudioManager::SetSoundPitch("rain.wav", pitch);
 			break;
 		}
 		
@@ -97,8 +95,15 @@ public:
 	{
     camera.Update(deltaTime);
 
-		audioManager.SetListener(camera.GetPosition(), glm::vec3(), camera.GetForward(), camera.GetUp());
-		audioManager.Update();
+		// set audio listener
+		AudioSystemVector listenerPosition{ camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z };
+		AudioSystemVector listenerVelocity;
+		AudioSystemVector listenerForward = { camera.GetForward().x, camera.GetForward().y, camera.GetForward().z };
+		AudioSystemVector listenerUp = { camera.GetUp().x, camera.GetUp().y, camera.GetUp().z };
+		AudioManager::SetListener(listenerPosition, listenerVelocity, listenerForward, listenerUp);
+
+		// update audio
+		AudioManager::Update();
 	}
 
 	void Render() 
@@ -129,7 +134,16 @@ protected:
     camera.Init(glm::vec3(0.0f, 1.0f, -15.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 1024.0f / 768.0f, 0.1f, 1000000.0f);
 
 		// init audio
-		audioManager.Initialise();
+		AudioManager::Initialise();
+
+		// set an audio source
+		AudioManager::AudioSourceDesc audioSourceDesc;
+		audioSourceDesc.soundName = "sound.wav";
+		audioSourceDesc.position = { cubes[5].pos.x, cubes[5].pos.y, cubes[5].pos.z };
+		audioSourceDesc.minDistance = 1.0f;
+		audioSourceDesc.maxDistance = 100.0f;
+		
+		audioSource = AudioManager::SetAudioSource(audioSourceDesc);
 	}
 		
 	void InitVBO()
@@ -289,7 +303,7 @@ protected:
 		glDeleteBuffers(1, &vertexBufferObject);
 		glDeleteBuffers(1, &indexBufferObject);
 
-		audioManager.Deinitialise();
+		AudioManager::Deinitialise();
 	}
 
 private:
@@ -346,8 +360,8 @@ private:
   // Camera
   FreeCamera camera;
 
-	// Audio Manager
-	AudioManager audioManager;
+	// Audio source
+	AudioManager::AudioSource audioSource;
 };
 
 #endif

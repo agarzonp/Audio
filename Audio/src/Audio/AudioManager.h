@@ -13,7 +13,7 @@ class AudioManager
 
 public:
 
-	void Initialise()
+	static void Initialise()
 	{
 		// check that we haven´t initialised it before
 		assert(audioSystem == nullptr);
@@ -28,7 +28,7 @@ public:
 		soundPool.SetSize(SOUND_POOL_SIZE);
 	}
 
-	void Deinitialise()
+	static void Deinitialise()
 	{
 		if (!audioSystem)
 		{
@@ -50,17 +50,18 @@ public:
 		audioSystem.reset();
 	}
 
-	void Update()
+	static void Update()
 	{
 		if (!audioSystem)
 		{
 			return;
 		}
 
+		// aupdate the system
 		audioSystem->Update();
 	}
 
-	bool LoadSound(const std::string& soundName, AudioSystemSoundMode soundMode = AudioSystemSoundMode_DEFAULT)
+	static bool LoadSound(const std::string& soundName, AudioSystemSoundMode soundMode = AudioSystemSoundMode_DEFAULT)
 	{
 		if (!audioSystem)
 		{
@@ -91,7 +92,7 @@ public:
 		return false;
 	}
 
-	bool UnloadSound(const std::string& soundName)
+	static bool UnloadSound(const std::string& soundName)
 	{
 		if (!audioSystem)
 		{
@@ -114,7 +115,7 @@ public:
 		return false;
 	}
 
-	bool PlaySound(const std::string& soundName)
+	static bool PlaySound(const std::string& soundName)
 	{
 		if (!audioSystem)
 		{
@@ -131,7 +132,7 @@ public:
 		return audioSystem->PlaySound(*soundMapIt->second);
 	}
 
-	bool StopSound(const std::string& soundName)
+	static bool StopSound(const std::string& soundName)
 	{
 		if (!audioSystem)
 		{
@@ -148,17 +149,17 @@ public:
 		return audioSystem->StopSound(*soundMapIt->second);
 	}
 
-	bool PauseSound(const std::string& soundName)
+	static bool PauseSound(const std::string& soundName)
 	{
 		return PauseSound(soundName, true);
 	}
 
-	bool ResumeSound(const std::string& soundName)
+	static bool ResumeSound(const std::string& soundName)
 	{
 		return PauseSound(soundName, false);
 	}
 
-	bool SetSoundVolume(const std::string& soundName, float volume)
+	static bool SetSoundVolume(const std::string& soundName, float volume)
 	{
 		if (!audioSystem)
 		{
@@ -178,7 +179,7 @@ public:
 		return audioSystem->SetSoundVolume(*soundMapIt->second, volume);
 	}
 
-	bool SetSoundPitch(const std::string& soundName, float pitch)
+	static bool SetSoundPitch(const std::string& soundName, float pitch)
 	{
 		if (!audioSystem)
 		{
@@ -195,19 +196,111 @@ public:
 		return audioSystem->SetSoundPitch(*soundMapIt->second, pitch);
 	}
 	
-	void SetListener(const glm::vec3& position, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up)
-	{
-		AudioSystemVector p = {position.x, position.y, position.z };
-		AudioSystemVector v = { velocity.x, velocity.y, velocity.z };;
-		AudioSystemVector f = { forward.x, forward.y, forward.z };;
-		AudioSystemVector u = { up.x, up.y, up.z };;
+	//////////////////////  3D AUDIO /////////////////////
 
-		audioSystem->SetListener(p, v, f, u);
+	struct AudioSourceDesc
+	{
+		std::string soundName;
+
+		AudioSystemVector position;
+		AudioSystemVector velocity;
+
+		float minDistance { -1.0f };
+		float maxDistance { -1.0f };
+	};
+
+	class AudioSource
+	{
+	protected:
+
+		AudioSystemSound* sound { nullptr };
+		AudioSourceDesc desc;
+
+	public:
+
+		void Play()
+		{
+			if (AudioManager::PlaySound(desc.soundName))
+			{
+				sound->GetSoundController()->Set3DAttributes(desc.position, desc.velocity);
+				sound->GetSoundController()->Set3DMinMaxDistance(desc.minDistance, desc.maxDistance);
+			}
+		}
+
+		void Stop()
+		{
+			AudioManager::StopSound(desc.soundName);
+		}
+
+		void SetPosition(const AudioSystemVector& position)
+		{
+			assert(sound);
+			if (sound)
+			{
+				desc.position = position;
+				sound->GetSoundController()->Set3DAttributes(position, desc.velocity);
+			}
+		}
+
+		void SetVelocity(const AudioSystemVector& velocity)
+		{
+			assert(sound);
+			if (sound)
+			{
+				desc.velocity = velocity;
+				sound->GetSoundController()->Set3DAttributes(desc.position, velocity);
+			}
+		}
+
+		void Set3DMinMaxDistance(float minDistance, float maxDistance)
+		{
+			assert(sound);
+			if (sound)
+			{
+				desc.minDistance = minDistance;
+				desc.maxDistance = maxDistance;
+
+				sound->GetSoundController()->Set3DMinMaxDistance(minDistance, maxDistance);
+			}
+		}
+
+		friend class AudioManager;
+	};
+	
+
+	static void SetListener(const AudioSystemVector& position, const AudioSystemVector& velocity, const AudioSystemVector& forward, const AudioSystemVector& up)
+	{
+		audioSystem->SetListener(position, velocity, forward, up);
 	}
+
+	static AudioSource SetAudioSource(const AudioSourceDesc& desc)
+	{
+		AudioSource audioSource;
+
+		if (auto sound = Load3DSound(desc.soundName))
+		{
+			audioSource.desc = desc;
+			audioSource.sound = sound;
+		}
+
+		return audioSource;
+	}
+
+	//////////////////////////////////////////////////////////
 
 protected:
 
-	bool PauseSound(const std::string& soundName, bool pause)
+	static AudioSystemSound* Load3DSound(const std::string& soundName)
+	{
+		if (LoadSound(soundName, AudioSystemSoundMode_3D))
+		{
+			return soundMap[soundName];
+		}
+
+		return nullptr;
+	}
+
+	static bool PauseSound(const std::string& soundName, bool pause)
 	{
 		if (!audioSystem)
 		{
