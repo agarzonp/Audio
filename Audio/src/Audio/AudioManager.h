@@ -9,191 +9,66 @@
 
 class AudioManager
 {
-	static const int SOUND_POOL_SIZE = 100;
-
 public:
 
 	static void Initialise()
 	{
-		// check that we haven´t initialised it before
-		assert(audioSystem == nullptr);
-		if (audioSystem)
-		{
-			return;
-		}
+    AudioSystem::InitParams initParams;
+    initParams.audioSystemType = AudioSystemType::FMOD;
+    initParams.soundPoolSise = 100;
+    initParams.audioAssetsPath = "assets/Audio/";
 
-		audioSystem = AudioSystem::Create();
-		audioSystem->Initialise();
-
-		soundPool.SetSize(SOUND_POOL_SIZE);
+    s_audioSystem.Initialise(initParams);
 	}
 
 	static void Deinitialise()
 	{
-		if (!audioSystem)
-		{
-			return;
-		}
-
-    // unload all sounds
-    for (auto& entry : soundMap)
-    {
-      if (audioSystem->UnloadSound(*entry.second))
-      {
-        soundPool.Release(*entry.second);
-      }
-    }
-    soundMap.clear();
-
-    // deinitialise audioSystem
-		audioSystem->Deinitialise();
-		audioSystem.reset();
+    s_audioSystem.Deinitialise();
 	}
 
 	static void Update()
 	{
-		if (!audioSystem)
-		{
-			return;
-		}
-
-		// aupdate the system
-		audioSystem->Update();
+    s_audioSystem.Update();
 	}
 
 	static bool LoadSound(const std::string& soundName, AudioSystemSoundMode soundMode = AudioSystemSoundMode_DEFAULT)
 	{
-		if (!audioSystem)
-		{
-			return false;
-		}
-
-    if (soundMap.find(soundName) != soundMap.end())
-    {
-      // sound already loaded
-      return true;
-    }
-
-    AudioSystemSound* sound = soundPool.GetFree();
-    if (!sound)
-    {
-      printf("Failed to load sound. Error: %s \n", "soundsPool is full. Consider to increase the size of the pool");
-      return false;
-    }
-
-		static const char* path = "assets/Audio/";
-    if (audioSystem->LoadSound(std::string(path) + soundName, soundMode, *sound))
-    {
-      // insert a new pair in the map
-      soundMap.insert(std::make_pair(soundName, sound));
-      return true;
-    }
-
-		return false;
+    return s_audioSystem.LoadSound(soundName, soundMode);
 	}
 
 	static bool UnloadSound(const std::string& soundName)
 	{
-		if (!audioSystem)
-		{
-			return false;
-		}
-
-		auto soundMapIt = soundMap.find(soundName);
-		if (soundMapIt == soundMap.end())
-		{
-			printf("Failed to unload sound %s. Error: Sound not loaded.", soundName.c_str());
-			return false;
-		}
-
-		if (audioSystem->UnloadSound(*soundMapIt->second))
-		{
-			soundMap.erase(soundMapIt);
-			return true;
-		}
-
-		return false;
+    return s_audioSystem.UnloadSound(soundName);
 	}
 
 	static bool PlaySound(const std::string& soundName)
 	{
-		if (!audioSystem)
-		{
-			return false;
-		}
-
-    auto soundMapIt = soundMap.find(soundName);
-    if (soundMapIt == soundMap.end())
-    {
-      printf("Failed to play sound %s. Error: Sound not loaded.", soundName.c_str());
-      return false;
-    }
-
-		return audioSystem->PlaySound(*soundMapIt->second);
+    return s_audioSystem.PlaySound(soundName);
 	}
 
 	static bool StopSound(const std::string& soundName)
 	{
-		if (!audioSystem)
-		{
-			return false;
-		}
-
-		auto soundMapIt = soundMap.find(soundName);
-		if (soundMapIt == soundMap.end())
-		{
-			printf("Failed to stop sound %s. Error: Sound not loaded.", soundName.c_str());
-			return false;
-		}
-
-		return audioSystem->StopSound(*soundMapIt->second);
+		return s_audioSystem.StopSound(soundName);
 	}
 
 	static bool PauseSound(const std::string& soundName)
 	{
-		return PauseSound(soundName, true);
+		return s_audioSystem.PauseSound(soundName, true);
 	}
 
 	static bool ResumeSound(const std::string& soundName)
 	{
-		return PauseSound(soundName, false);
+		return s_audioSystem.PauseSound(soundName, false);
 	}
 
 	static bool SetSoundVolume(const std::string& soundName, float volume)
 	{
-		if (!audioSystem)
-		{
-			return false;
-		}
-
-		auto soundMapIt = soundMap.find(soundName);
-		if (soundMapIt == soundMap.end())
-		{
-			printf("Failed to set volume for sound %s. Error: Sound not loaded.", soundName.c_str());
-			return false;
-		}
-
-		if (volume > 1.0f) volume = 1.0f;
-		if (volume < 0.0f) volume = 0.0f;
-
-		return audioSystem->SetSoundVolume(*soundMapIt->second, volume);
+		return s_audioSystem.SetSoundVolume(soundName, volume);
 	}
 
 	static bool SetSoundPitch(const std::string& soundName, float pitch)
 	{
-		if (!audioSystem)
-		{
-			return false;
-		}
-
-		auto soundMapIt = soundMap.find(soundName);
-		if (soundMapIt == soundMap.end())
-		{
-			printf("Failed to set pitch for sound %s. Error: Sound not loaded.", soundName.c_str());
-			return false;
-		}
-
-		return audioSystem->SetSoundPitch(*soundMapIt->second, pitch);
+    return s_audioSystem.SetSoundPitch(soundName, pitch);
 	}
 	
 	//////////////////////  3D AUDIO /////////////////////
@@ -270,64 +145,31 @@ public:
 
 	static void SetListener(const AudioSystemVector& position, const AudioSystemVector& velocity, const AudioSystemVector& forward, const AudioSystemVector& up)
 	{
-		audioSystem->SetListener(position, velocity, forward, up);
+		s_audioSystem.SetListener(position, velocity, forward, up);
 	}
 
 	static AudioSource SetAudioSource(const AudioSourceDesc& desc)
 	{
 		AudioSource audioSource;
 
-		if (auto sound = Load3DSound(desc.soundName))
-		{
-			audioSource.desc = desc;
-			audioSource.sound = sound;
-		}
+    if (LoadSound(desc.soundName, AudioSystemSoundMode_3D))
+    {
+      auto sound = s_audioSystem.GetSound(desc.soundName);
+      audioSource.desc = desc;
+      audioSource.sound = sound;
+    }
 
 		return audioSource;
 	}
 
 	//////////////////////////////////////////////////////////
 
-protected:
-
-	static AudioSystemSound* Load3DSound(const std::string& soundName)
-	{
-		if (LoadSound(soundName, AudioSystemSoundMode_3D))
-		{
-			return soundMap[soundName];
-		}
-
-		return nullptr;
-	}
-
-	static bool PauseSound(const std::string& soundName, bool pause)
-	{
-		if (!audioSystem)
-		{
-			return false;
-		}
-
-		auto soundMapIt = soundMap.find(soundName);
-		if (soundMapIt == soundMap.end())
-		{
-			printf("Failed to %s sound %s. Error: Sound not loaded.", pause ? "pause":"resume", soundName.c_str());
-			return false;
-		}
-
-		return audioSystem->PauseSound(*soundMapIt->second, pause);
-	}
 
 private:
 
-	static std::unique_ptr<IAudioSystem> audioSystem;
-  static AudioSystemSoundPool soundPool;
-
-  using SoundMap = std::map<std::string, AudioSystemSound*>;
-  static SoundMap soundMap;
+  static AudioSystem s_audioSystem;
 };
 
-std::unique_ptr<IAudioSystem> AudioManager::audioSystem;
-AudioSystemSoundPool AudioManager::soundPool;
-AudioManager::SoundMap AudioManager::soundMap;
+AudioSystem AudioManager::s_audioSystem;
 
 #endif

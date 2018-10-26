@@ -1,5 +1,5 @@
-#ifndef TXIKI_AUDIO
-#define TXIKI_AUDIO
+#ifndef TXIKI_AUDIO_H
+#define TXIKI_AUDIO_H
 
 #include <fstream>
 #include <functional>
@@ -512,5 +512,5 @@ public:
 		}
 };
 
-#endif // !AUDIO_SYSTEM_TXIKI_AUDIO
+#endif // !TXIKI_AUDIO_H
 
