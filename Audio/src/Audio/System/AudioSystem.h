@@ -3,17 +3,7 @@
 
 #include <memory>
 
-#include "System_Common\AudioSystemCommon.h"
-#include "System_FMOD\AudioSystemFMOD.h"
-#include "System_TxikiAudio\AudioSystemTxikiAudio.h"
-
-
-// AudioSystemType
-enum class AudioSystemType
-{
-  FMOD,
-  TXIKI_AUDIO
-};
+#include "AudioSystemFactory.h"
 
 // AudioSystem
 //
@@ -32,7 +22,8 @@ public:
   void Initialise(const InitParams& params)
   {
     // init system
-    InitSystem(params.audioSystemType);
+    system = AudioSystemFactory::NewSystem(params.audioSystemType);
+    system->Initialise();
     
     // set sound pool size
     soundPool.SetSize(params.soundPoolSise);
@@ -229,28 +220,6 @@ private:
   {
     auto soundMapIt = soundMap.find(soundName);
     return soundMapIt != soundMap.end() ? soundMapIt->second : nullptr;
-  }
-
-  void InitSystem(AudioSystemType type)
-  {
-    // check that we haven't initialised it before
-    assert(system == nullptr);
-    if (system)
-    {
-      return;
-    }
-
-    switch (type)
-    {
-    case AudioSystemType::FMOD:
-      system = std::make_unique<AudioSystemFMOD>();
-      break;
-    case AudioSystemType::TXIKI_AUDIO:
-      system = std::make_unique<AudioSystemTxikiAudio>();
-      break;
-    }
-
-    system->Initialise();
   }
 
 private:
