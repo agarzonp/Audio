@@ -88,11 +88,11 @@
     <ClInclude Include="src\Audio\System\System_Common\AudioSystemDefines.h">
       <Filter>Source Files\Audio\Systems\System_Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Audio\System\System_FMOD\FMODSoundController.h">
-      <Filter>Source Files\Audio\Systems\System_FMOD</Filter>
-    </ClInclude>
     <ClInclude Include="src\Audio\System\AudioSystemFactory.h">
       <Filter>Source Files\Audio\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\System\System_FMOD\AudioSystemSoundFMOD.h">
+      <Filter>Source Files\Audio\Systems\System_FMOD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

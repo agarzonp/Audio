@@ -24,55 +24,16 @@ public:
 		// TO-DO
 	}
 
-  bool LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode, AudioSystemSound& outSound) override
-	{
-    TxikiAudioSound* sound = nullptr;
-		bool loaded = txikiAudio.LoadSound(soundName, sound);
-		if (!loaded)
-		{
-			printf("Failed to load sound %s \n", soundName.c_str());
-		}
+  IAudioSystemSound* LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode) final
+  {
+    return txikiAudio.LoadSound(soundName);
+  }
 
-    outSound = AudioSystemSound(sound);
-
-		return loaded;
-	}
-
-	bool UnloadSound(const AudioSystemSound& audioSystemSound) override
-	{
-    TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
+  bool UnloadSound(IAudioSystemSound* audioSystemSound) final
+  {
+    TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound);
     return txikiAudio.UnloadSound(sound);
-	}
-
-	bool PlaySound(AudioSystemSound& audioSystemSound) override
-	{
-    TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
-    return txikiAudio.PlaySound(sound);
-	}
-
-	bool StopSound(const AudioSystemSound& audioSystemSound) override
-	{
-    TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
-    return txikiAudio.StopSound(sound);
-	}
-
-	bool PauseSound(const AudioSystemSound& audioSystemSound, bool pause) override
-	{
-		TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
-		return txikiAudio.PauseSound(sound, pause);
-	}
-
-	bool SetSoundVolume(const AudioSystemSound& audioSystemSound, float volume) override
-	{
-		TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
-		return txikiAudio.SetVolume(sound, volume);
-	}
-
-	bool SetSoundPitch(const AudioSystemSound& audioSystemSound, float pitch) override
-	{
-		TxikiAudioSound* sound = static_cast<TxikiAudioSound*>(audioSystemSound.Get());
-		return txikiAudio.SetPitch(sound, pitch);
-	}
+  }
 };
 
 #endif // !AUDIO_SYSTEM_TXIKI_AUDIO

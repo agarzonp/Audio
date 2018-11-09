@@ -6,104 +6,22 @@
 
 #include "AudioSystemDefines.h"
 
-// A wrapper for the actual system sound controller
-class AudioSystemSoundController
+// Interface for AudioSystemSound
+class IAudioSystemSound
 {
 public:
 
-	AudioSystemSoundController(void* controller_) : controller(controller_) {}
+  virtual bool Play() = 0;
+  virtual bool Stop() = 0;
+  virtual bool Pause(bool pause) = 0;
+  virtual bool Release() = 0;
 
-	virtual bool Stop() const { assert(false); return false; }
-	virtual bool Pause(bool pause) const { assert(false); return false; }
-	virtual bool SetVolume (float volume) const { assert(false); return false; }
-	virtual bool SetPitch(float pitch) const { assert(false); return false; }
+  virtual bool SetVolume(float volume) = 0;
+  virtual bool SetPitch(float pitch) = 0;
 
-	// 3D audio
-	virtual void Set3DMinMaxDistance(float minDistance, float maxDistance) { assert(false); }
-	virtual void Set3DAttributes(const AudioSystemVector& position, const AudioSystemVector& velocity)
-	{
-		this->position = position;
-		this->velocity = velocity;
-	}
-
-	
-
-protected:
-	void* controller{ nullptr };
-
-	// 3D audio
-	AudioSystemVector position;
-	AudioSystemVector velocity;
+  virtual void Set3DAttributes(const AudioSystemVector& position, const AudioSystemVector& velocity) = 0;
+  virtual void Set3DMinMaxDistance(float minDistance, float maxDistance) = 0;
 };
-
-// A wrapper for the actual system sound
-class AudioSystemSound
-{
-public:
-  AudioSystemSound() = default;
-  AudioSystemSound(void* sound_) : sound(sound_) {}
-  
-  void* Get() const { return sound; }
-
-	void SetSoundController(std::unique_ptr<AudioSystemSoundController>& controller) { soundController = std::move(controller); }
-	const std::unique_ptr<AudioSystemSoundController>& GetSoundController() const { return soundController; }
-
-protected:
-  
-	void Release()
-	{
-		sound = nullptr;
-		if (soundController)
-		{
-			soundController.release();
-		}
-	}
-
-private:
-
-  void* sound { nullptr };
-	std::unique_ptr<AudioSystemSoundController> soundController;
-
-  // Only the AudioSystemSoundPool is able to release current sound
-  friend class AudioSystemSoundPool;
-};
-
-// Basic pool of AudioSystemSounds
-class AudioSystemSoundPool
-{
-public:
-
-	void SetSize(size_t size)
-	{
-		sounds.resize(size);
-	}
-
-  AudioSystemSound* GetFree()
-  {
-    AudioSystemSound* sound = nullptr;
-
-    for (auto& s : sounds)
-    {
-      if (s.Get() == nullptr)
-      {
-        sound = &s;
-        break;
-      }
-    }
-
-    return sound;
-  }
-
-  void Release(AudioSystemSound& sound)
-  {
-    sound.Release();
-  }
-
-private:
-
-    std::vector<AudioSystemSound> sounds;
-};
-
 
 // AudioSystemListener
 class AudioSystemListener
@@ -139,15 +57,8 @@ public:
 
 	virtual void Update() = 0;
 
-	virtual bool LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode, AudioSystemSound& outSound) = 0;
-	virtual bool UnloadSound(const AudioSystemSound& audioSystemSound) = 0;
-
-	virtual bool PlaySound(AudioSystemSound& audioSystemSound) = 0;
-	virtual bool StopSound(const AudioSystemSound& audioSystemSound) = 0;
-	virtual bool PauseSound(const AudioSystemSound& audioSystemSound, bool pause) = 0;
-
-	virtual bool SetSoundVolume(const AudioSystemSound& audioSystemSound, float volume) = 0;
-	virtual bool SetSoundPitch(const AudioSystemSound& audioSystemSound, float pitch) = 0;
+  virtual IAudioSystemSound* LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode) = 0;
+  virtual bool UnloadSound(IAudioSystemSound* audioSystemSound) = 0;
 
 	void SetListener(const AudioSystemVector& position, const AudioSystemVector& velocity, const AudioSystemVector& forward, const AudioSystemVector& up)
 	{

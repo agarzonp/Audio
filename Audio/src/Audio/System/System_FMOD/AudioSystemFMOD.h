@@ -4,9 +4,10 @@
 #include "FMOD/fmod.hpp"
 #include "FMOD/fmod_errors.h"
 
-#include "FMODSoundController.h"
+#include "AudioSystemSoundFMOD.h"
 
 #include <vector>
+
 
 class AudioSystemFMOD : public IAudioSystem
 {
@@ -28,6 +29,8 @@ public:
 		FMOD_INITFLAGS flags = FMOD_INIT_NORMAL;
 		void* extraDriverData = nullptr;
 		system->init(maxChannels, flags, extraDriverData);
+
+    AudioSystemSoundFMOD::s_system = system;
 	}
 
 	void Deinitialise() override
@@ -58,118 +61,46 @@ public:
 		system->update();
 	}
 
-  bool LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode, AudioSystemSound& outSound) override
-	{
-		if (!system)
-		{
-			return false;
-		}
+  IAudioSystemSound* LoadSound(const std::string& soundName, AudioSystemSoundMode audioSystemSoundMode) final
+  {
+    if (!system)
+    {
+      return false;
+    }
 
-		// get sound mode
-		FMOD_MODE soundMode = FMOD_DEFAULT;
-		if (audioSystemSoundMode & AudioSystemSoundMode_2D)
-		{
-			soundMode |= FMOD_2D;
-		}
-		else if (audioSystemSoundMode & AudioSystemSoundMode_3D)
-		{
-			soundMode |= FMOD_3D;
-		}
+    // get sound mode
+    FMOD_MODE soundMode = FMOD_DEFAULT;
+    if (audioSystemSoundMode & AudioSystemSoundMode_2D)
+    {
+      soundMode |= FMOD_2D;
+    }
+    else if (audioSystemSoundMode & AudioSystemSoundMode_3D)
+    {
+      soundMode |= FMOD_3D;
+    }
 
     // create the sound
-		FMOD::Sound* sound = nullptr;
-		FMOD_RESULT result = system->createSound(soundName.c_str(), soundMode, nullptr, &sound);
+    FMOD::Sound* sound = nullptr;
+    FMOD_RESULT result = system->createSound(soundName.c_str(), soundMode, nullptr, &sound);
     if (result != FMOD_OK)
     {
       printf("Failed to load sound. Error: %s \n", FMOD_ErrorString(result));
       return false;
     }
 
-    outSound = AudioSystemSound(sound);
+    return new AudioSystemSoundFMOD(sound);
+  }
 
-		return true;
-	}
-
-	bool UnloadSound(const AudioSystemSound& audioSystemSound) override
-	{
-    FMOD::Sound* sound = static_cast<FMOD::Sound*> (audioSystemSound.Get());
-    if (sound)
+  bool UnloadSound(IAudioSystemSound* audioSystemSound) final
+  {
+    if (audioSystemSound->Release())
     {
-      sound->release();
+      delete audioSystemSound;
       return true;
     }
 
-		return false;
-	}
-
-	bool PlaySound(AudioSystemSound& audioSystemSound) override
-	{
-		if (!system)
-		{
-			return false;
-		}
-
-    FMOD::Sound* sound = static_cast<FMOD::Sound*> (audioSystemSound.Get());
-    if (!sound)
-    {
-      return false;
-    }
-
-    FMOD::Channel* channel = nullptr;
-    bool paused = false;
-    FMOD_RESULT result = system->playSound(sound, nullptr, paused, &channel);
-    if (result == FMOD_OK)
-		{
-			std::unique_ptr<AudioSystemSoundController> controller = std::make_unique<FMODSoundController>(channel);
-			audioSystemSound.SetSoundController(controller);
-		}
-		else
-		{
-			printf("Failed to play sound. Error: %s \n", FMOD_ErrorString(result));
-		}
-      
-		return (result == FMOD_OK);
-	}
-
-	bool StopSound(const AudioSystemSound& audioSystemSound) override
-	{
-		if (!system)
-		{
-			return false;
-		}
-
-		return audioSystemSound.GetSoundController()->Stop();
-	}
-
-	bool PauseSound(const AudioSystemSound& audioSystemSound, bool pause) override
-	{
-		if (!system)
-		{
-			return false;
-		}
-
-		return audioSystemSound.GetSoundController()->Pause(pause);
-	}
-
-	bool SetSoundVolume(const AudioSystemSound& audioSystemSound, float volume) override
-	{
-		if (!system)
-		{
-			return false;
-		}
-
-		return audioSystemSound.GetSoundController()->SetVolume(volume);
-	}
-
-	bool SetSoundPitch(const AudioSystemSound& audioSystemSound, float pitch) override
-	{
-		if (!system)
-		{
-			return false;
-		}
-
-		return audioSystemSound.GetSoundController()->SetPitch(pitch);
-	}
+    return false;
+  }
 };
 
 #endif // !AUDIO_SYSTEM_FMOD

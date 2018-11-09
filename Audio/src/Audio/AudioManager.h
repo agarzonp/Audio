@@ -15,7 +15,6 @@ public:
 	{
     AudioSystem::InitParams initParams;
     initParams.audioSystemType = AudioSystemType::FMOD;
-    initParams.soundPoolSise = 100;
     initParams.audioAssetsPath = "assets/Audio/";
 
     s_audioSystem.Initialise(initParams);
@@ -88,7 +87,7 @@ public:
 	{
 	protected:
 
-		AudioSystemSound* sound { nullptr };
+		IAudioSystemSound* sound { nullptr };
 		AudioSourceDesc desc;
 
 	public:
@@ -97,8 +96,8 @@ public:
 		{
 			if (AudioManager::PlaySound(desc.soundName))
 			{
-				sound->GetSoundController()->Set3DAttributes(desc.position, desc.velocity);
-				sound->GetSoundController()->Set3DMinMaxDistance(desc.minDistance, desc.maxDistance);
+				sound->Set3DAttributes(desc.position, desc.velocity);
+				sound->Set3DMinMaxDistance(desc.minDistance, desc.maxDistance);
 			}
 		}
 
@@ -113,7 +112,7 @@ public:
 			if (sound)
 			{
 				desc.position = position;
-				sound->GetSoundController()->Set3DAttributes(position, desc.velocity);
+				sound->Set3DAttributes(position, desc.velocity);
 			}
 		}
 
@@ -123,7 +122,7 @@ public:
 			if (sound)
 			{
 				desc.velocity = velocity;
-				sound->GetSoundController()->Set3DAttributes(desc.position, velocity);
+				sound->Set3DAttributes(desc.position, velocity);
 			}
 		}
 
@@ -135,7 +134,7 @@ public:
 				desc.minDistance = minDistance;
 				desc.maxDistance = maxDistance;
 
-				sound->GetSoundController()->Set3DMinMaxDistance(minDistance, maxDistance);
+				sound->Set3DMinMaxDistance(minDistance, maxDistance);
 			}
 		}
 

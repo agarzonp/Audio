@@ -23,8 +23,10 @@ enum class TxikiAudioSoundSampleRate
 	SampleRate_44100Hz = 44100
 };
 
-struct TxikiAudioSound
+class TxikiAudioSound : public IAudioSystemSound
 {
+public:
+
 	static const size_t NUM_CHANNELS = 2;
 
 	size_t numSamples{ 0 };
@@ -47,7 +49,7 @@ struct TxikiAudioSound
 
 	float basePitch{ 1.0f };
 		
-	void Release()
+	bool Release() final
   {
 		Stop();
 
@@ -56,20 +58,25 @@ struct TxikiAudioSound
     samples.reset();
 
 		sampleIndex = 0;
+
+    return true;
   }
 
-	void Play()
-	{
-		state = State::PLAYING;
-	}
+	bool Play() final
+	{  
+    state = State::PLAYING;
+    return true; 
+  }
 
-	void Stop()
+	bool Stop() final
 	{		
 		// reset
 		sampleIndex = 0;
 		state = State::STOPPED;
 		volume = 1.0f;
 		pitch = basePitch;
+
+    return true;
 	}
 
 	bool Pause(bool pause)
@@ -83,16 +90,18 @@ struct TxikiAudioSound
 		return true;
 	}
 
-	void SetVolume(float v)
+	bool SetVolume(float v) final
 	{
 		// set the volume in the range [0.0f, 1.0f]
 		volume = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+    return true;
 	}
 
-	void SetPitch(float p)
+	bool SetPitch(float p) final
 	{
 		// set the volume in the range [0.125f, 8.0f] 
 		pitch = p < 0.125f ? 0.125f : (p > 8.0f ? 8.0f : p);
+    return true;
 	}
 
 	void WriteSound(short* outBuffer, size_t framesPerBuffer)
@@ -128,6 +137,16 @@ struct TxikiAudioSound
 
 		return;
 	}
+
+  void Set3DAttributes(const AudioSystemVector& position, const AudioSystemVector& velocity) final
+  {
+    // TO-DO
+  }
+
+  void Set3DMinMaxDistance(float minDistance, float maxDistance) final
+  {
+    // TO-DO
+  }
 };
 
 class TxikiAudio 
@@ -197,6 +216,8 @@ public:
       return false;
     }
 
+    StartStream();
+
     initialised = true;
     return true;
   }
@@ -228,18 +249,19 @@ public:
     return true;
   }
 
-  bool LoadSound(const std::string& soundName, TxikiAudioSound*& outSound)
-	{
+  TxikiAudioSound* LoadSound(const std::string& soundName)
+  {
     if (!initialised)
     {
-      return false;
+      printf("Error: Unable to load sound %s. TxikiAudio not initialised\n", soundName.c_str());
+      return nullptr;
     }
 
     std::ifstream iFile(soundName.c_str(), std::ios_base::binary);
     if (!iFile.is_open())
     {
       printf("Error: Unable to load file %s\n", soundName.c_str());
-      return false;
+      return nullptr;
     }
 
     size_t value = 0;
@@ -258,7 +280,7 @@ public:
     if (!iFile.good())
     {
       printf("Error: Chunk WavFileFormat.DESCRIPTOR not read properly.\n");
-      return false;
+      return nullptr;
     }
 
     value = 0;
@@ -370,15 +392,13 @@ public:
     if (streamPos != iFile.tellg())
     {
       printf("Error: Samples in chunk WavFileFormat.DATA not read properly.\n");
-      return false;
+      return nullptr;
     }
 
     iFile.close();
 
     // get a new TxikiAudioSound
-    outSound = GetTxikiAudioSound(samples, samplesBufferSize, sampleRate);
-
-		return true;
+		return GetTxikiAudioSound(samples, samplesBufferSize, sampleRate);
 	}
   
   bool UnloadSound(TxikiAudioSound* sound)
@@ -391,40 +411,6 @@ public:
     sound->Release();
     return true;
   }
-
-  bool PlaySound(TxikiAudioSound* sound)
-  {
-		if (StartStream(sound))
-		{
-			sound->Play();
-			return true;
-		}
-		
-		return false;
-  }
-
-  bool StopSound(TxikiAudioSound* sound)
-  {
-		sound->Stop();
-		return true;
-  }
-
-	bool PauseSound(TxikiAudioSound* sound, bool pause)
-	{
-		return sound->Pause(pause);
-	}
-
-	bool SetVolume(TxikiAudioSound* sound, float volume)
-	{
-		sound->SetVolume(volume);
-		return true;
-	}
-
-	bool SetPitch(TxikiAudioSound* sound, float pitch)
-	{
-		sound->SetPitch(pitch);
-		return true;
-	}
 
 	protected:
 
@@ -481,7 +467,7 @@ public:
 			return 0;
     }
 
-		bool StartStream(TxikiAudioSound* sound)
+		bool StartStream()
 		{
 			if (!stream_PCM16)
 			{
