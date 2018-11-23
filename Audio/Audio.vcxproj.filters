@@ -94,6 +94,9 @@
     <ClInclude Include="src\Audio\System\System_FMOD\AudioSystemSoundFMOD.h">
       <Filter>Source Files\Audio\Systems\System_FMOD</Filter>
     </ClInclude>
+    <ClInclude Include="src\Audio\System\System_TxikiAudio\TxikiAudio\TxikiAudioSound.h">
+      <Filter>Source Files\Audio\Systems\System_TxikiAudio\TxikiAudio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\Shaders\basic.frag">
