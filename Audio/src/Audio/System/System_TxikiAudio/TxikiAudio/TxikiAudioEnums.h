@@ -10,11 +10,11 @@ enum class TxikiAudioFileFormat
   NUM_FILE_FORMATS
 };
 
-enum class TxikiAudioSoundFormat
+enum class TxikiAudioSoundFormat : PaSampleFormat
 {
   NONE,
 
-  PCM16
+  PCM16 = paInt16
 };
 
 enum class TxikiAudioSoundSampleRate
