@@ -31,7 +31,9 @@
     <ClInclude Include="src\Audio\System\System_FMOD\AudioSystemSoundFMOD.h" />
     <ClInclude Include="src\Audio\System\System_TxikiAudio\AudioSystemTxikiAudio.h" />
     <ClInclude Include="src\Audio\System\System_TxikiAudio\TxikiAudio\TxikiAudio.h" />
+    <ClInclude Include="src\Audio\System\System_TxikiAudio\TxikiAudio\TxikiAudioEnums.h" />
     <ClInclude Include="src\Audio\System\System_TxikiAudio\TxikiAudio\TxikiAudioSound.h" />
+    <ClInclude Include="src\Audio\System\System_TxikiAudio\TxikiAudio\TxikiAudioSoundLoader.h" />
     <ClInclude Include="src\Input\Input.h" />
     <ClInclude Include="src\Shaders\Shader.h" />
     <ClInclude Include="src\TestEnvironment\Camera\Camera.h" />
