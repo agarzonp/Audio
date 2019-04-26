@@ -61,7 +61,7 @@ public:
     return true;
   }
 
-  bool Pause(bool pause)
+  bool Pause(bool pause) final
   {
     if (state == State::STOPPED)
     {
